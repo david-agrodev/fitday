@@ -1,1420 +1,1410 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <meta name="mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="apple-mobile-web-app-title" content="FITDay"/>
-  <meta name="theme-color" content="#1E293B"/>
-  <meta name="description" content="FITDay — Seu dia fitness. Caminhadas, hábitos e metas em um só lugar."/>
-  <link rel="manifest" href="manifest.json"/>
-  <link rel="apple-touch-icon" href="icons/icon-192.png"/>
-  <link rel="icon" type="image/png" href="icons/icon-192.png"/>
-  <title>FITDay</title>
-
-  <!-- ══ SUPABASE SDK ══════════════════════════════════════════════════ -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <!-- inicialização no body script abaixo para evitar conflito de escopo -->
-  <!-- ══════════════════════════════════════════════════════════════════ -->
-
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-
-  <style>
-    :root {
-      --primary:  #1E293B;
-      --accent:   #F97316;
-      --accent2:  #FB923C;
-      --bg:       #F8FAFC;
-      --text:     #0F172A;
-      --success:  #22C55E;
-      --error:    #EF4444;
-      --card:     #FFFFFF;
-      --border:   #E2E8F0;
-      --muted:    #94A3B8;
-      --tab-h:    66px;
-      --top-h:    54px;
-    }
-    *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      background: var(--bg); color: var(--text);
-      margin: 0; padding: 0; min-height: 100dvh; overflow-x: hidden;
-    }
-    /* ── ICONS ──────────────────────────────────── */
-    .ic {
-      fill: none; stroke: currentColor; stroke-width: 2;
-      stroke-linecap: round; stroke-linejoin: round;
-      display: inline-block; vertical-align: middle; flex-shrink: 0;
-    }
-    .ic-18 { width:18px; height:18px; }
-    .ic-20 { width:20px; height:20px; }
-    .ic-22 { width:22px; height:22px; }
-    .ic-24 { width:24px; height:24px; }
-    .ic-28 { width:28px; height:28px; }
-    .ic-36 { width:36px; height:36px; }
-    .ic-48 { width:48px; height:48px; }
-
-    /* ── TOP BAR ─────────────────────────────────── */
-    #topbar {
-      position: fixed; top:0; left:0; right:0; z-index:100;
-      background: var(--primary);
-      height: calc(var(--top-h) + env(safe-area-inset-top));
-      padding: calc(12px + env(safe-area-inset-top)) 20px 10px;
-      display: flex; align-items: center; justify-content: space-between;
-    }
-    .logo-wrap { display:flex; align-items:center; gap:8px; }
-    .logo-icon-bg {
-      width:32px; height:32px; border-radius:9px;
-      background: var(--accent); display:flex; align-items:center; justify-content:center;
-    }
-    .logo-text { font-size:18px; font-weight:800; color:#fff; letter-spacing:-0.4px; }
-    .logo-text span { color: var(--accent); }
-    .avatar-btn {
-      width:34px; height:34px; border-radius:50%;
-      background: linear-gradient(135deg,#334155,#475569);
-      border: 2px solid rgba(255,255,255,.15);
-      display:flex; align-items:center; justify-content:center;
-      cursor: pointer; color:#fff;
-    }
-
-    /* ── INSTALL BANNER ──────────────────────────── */
-    #install-banner {
-      display:none; position:fixed; top:calc(var(--top-h) + env(safe-area-inset-top));
-      left:0; right:0; z-index:99;
-      background: var(--accent); padding: 10px 16px;
-      align-items:center; justify-content:space-between; gap:10px;
-    }
-    #install-banner.show { display:flex; }
-    #install-banner p { font-size:13px; font-weight:600; color:#fff; margin:0; }
-    #install-banner button {
-      background:#fff; color:var(--accent); border:none; border-radius:8px;
-      padding:6px 14px; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap;
-      font-family:inherit;
-    }
-    #install-banner .close-banner { background:transparent; color:#fff; padding:4px; }
-
-    /* ── MAIN ────────────────────────────────────── */
-    #main {
-      padding-top: calc(var(--top-h) + env(safe-area-inset-top));
-      padding-bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 8px);
-      min-height: 100dvh;
-    }
-    #main.with-banner {
-      padding-top: calc(var(--top-h) + env(safe-area-inset-top) + 44px);
-    }
-
-    /* ── BOTTOM NAV ──────────────────────────────── */
-    #navbar {
-      position:fixed; bottom:0; left:0; right:0; z-index:100;
-      background: #fff; border-top: 1px solid var(--border);
-      display:flex;
-      height: calc(var(--tab-h) + env(safe-area-inset-bottom));
-      padding-bottom: env(safe-area-inset-bottom);
-      box-shadow: 0 -2px 20px rgba(0,0,0,.06);
-    }
-    .tab-btn {
-      flex:1; display:flex; flex-direction:column;
-      align-items:center; justify-content:center; gap:5px;
-      border:none; background:transparent; cursor:pointer; padding:0;
-      color: var(--muted); transition: color .15s; position:relative;
-    }
-    .tab-btn .tab-lbl {
-      font-size:9px; font-weight:700; letter-spacing:.7px;
-      text-transform:uppercase; transition: color .15s;
-    }
-    .tab-btn.active { color: var(--accent); }
-    .tab-btn.active::before {
-      content:'';
-      position:absolute; top:0; left:50%; transform:translateX(-50%);
-      width:28px; height:3px; border-radius:0 0 4px 4px;
-      background: var(--accent);
-    }
-
-    /* ── PAGES ───────────────────────────────────── */
-    .page { display:none; padding:20px 16px; }
-    .page.active { display:block; }
-    @keyframes fadeUp {
-      from { opacity:0; transform:translateY(10px); }
-      to   { opacity:1; transform:translateY(0); }
-    }
-    .page.active > * { animation: fadeUp .28s ease both; }
-    .page.active > *:nth-child(2) { animation-delay:.04s; }
-    .page.active > *:nth-child(3) { animation-delay:.08s; }
-    .page.active > *:nth-child(4) { animation-delay:.12s; }
-    .page.active > *:nth-child(5) { animation-delay:.16s; }
-
-    /* ── CARDS ───────────────────────────────────── */
-    .card {
-      background: var(--card); border-radius:18px;
-      border: 1px solid var(--border);
-      box-shadow: 0 1px 4px rgba(0,0,0,.04);
-    }
-    .card-p { padding:18px; }
-
-    /* ── SECTION TITLE ───────────────────────────── */
-    .sec { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.9px; margin-bottom:14px; }
-
-    /* ── PROGRESS ────────────────────────────────── */
-    .prog-bg { background:#F1F5F9; border-radius:99px; height:8px; overflow:hidden; }
-    .prog-fill { height:100%; border-radius:99px; transition:width .6s ease; }
-    .prog-orange { background: linear-gradient(90deg,var(--accent),var(--accent2)); }
-    .prog-green  { background: linear-gradient(90deg,var(--success),#4ADE80); }
-    .prog-blue   { background: linear-gradient(90deg,#38BDF8,#0EA5E9); }
-    .prog-gold   { background: linear-gradient(90deg,#F97316,#FBBF24); }
-
-    /* ── STREAK BANNER ───────────────────────────── */
-    .streak-banner {
-      background: linear-gradient(135deg, var(--primary) 0%, #334155 100%);
-      border-radius:18px; padding:20px; color:#fff;
-      display:flex; justify-content:space-between; align-items:center;
-      margin-bottom:14px;
-    }
-    .streak-num { font-size:44px; font-weight:800; line-height:1; }
-    .streak-lbl { font-size:13px; color:#CBD5E1; margin-top:2px; }
-    .streak-sub { font-size:11px; color:#64748B; margin-top:8px; }
-
-    /* ── STAT GRID ───────────────────────────────── */
-    .stat-grid { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-bottom:14px; }
-    .stat-card {
-      background:var(--card); border-radius:16px; padding:15px;
-      border:1px solid var(--border);
-    }
-    .stat-ic-wrap { margin-bottom:8px; }
-    .stat-val { font-size:22px; font-weight:800; }
-    .stat-lbl { font-size:12px; color:var(--muted); margin-top:1px; }
-
-    /* ── HABIT ITEM ──────────────────────────────── */
-    .habit-item {
-      display:flex; align-items:center; gap:13px;
-      padding:13px 0; border-bottom:1px solid var(--border);
-    }
-    .habit-item:last-child { border-bottom:none; }
-    .habit-ic-wrap {
-      width:38px; height:38px; border-radius:12px; flex-shrink:0;
-      background:#F1F5F9; display:flex; align-items:center; justify-content:center;
-      color: var(--primary);
-    }
-    .habit-name { font-size:15px; font-weight:600; }
-    .habit-streak { font-size:12px; color:var(--muted); margin-top:1px; display:flex; align-items:center; gap:4px; }
-    .chk {
-      width:26px; height:26px; border-radius:8px; border:2px solid var(--border);
-      display:flex; align-items:center; justify-content:center; flex-shrink:0;
-      cursor:pointer; transition:all .2s; background:transparent; color:transparent;
-    }
-    .chk.done { background:var(--success); border-color:var(--success); color:#fff; }
-
-    /* ── WALK BIG CARD ───────────────────────────── */
-    .walk-hero {
-      background: linear-gradient(150deg, #0F1F38 0%, var(--primary) 100%);
-      border-radius:20px; padding:26px 22px; color:#fff; margin-bottom:14px;
-    }
-    .walk-steps-val { font-size:56px; font-weight:800; line-height:1; font-family:'DM Mono',monospace; }
-    .walk-goal-lbl { font-size:13px; color:#64748B; margin-top:4px; }
-    .walk-metrics { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-top:20px; }
-    .walk-metric-val { font-size:20px; font-weight:800; font-family:'DM Mono',monospace; }
-    .walk-metric-lbl { font-size:11px; color:#64748B; margin-top:2px; }
-    .walk-metric-ic  { margin-bottom:4px; color:#475569; }
-
-    /* ── BUTTONS ─────────────────────────────────── */
-    .btn-primary {
-      width:100%; padding:15px; border-radius:14px;
-      background:var(--accent); color:#fff; font-weight:700; font-size:16px;
-      border:none; cursor:pointer; font-family:inherit; letter-spacing:-.1px;
-      display:flex; align-items:center; justify-content:center; gap:8px;
-      transition: transform .15s, box-shadow .15s;
-      box-shadow: 0 4px 14px rgba(249,115,22,.3);
-    }
-    .btn-primary:active { transform:scale(.98); }
-
-    /* ── WALK HISTORY ────────────────────────────── */
-    .walk-row {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:13px 0; border-bottom:1px solid var(--border);
-    }
-    .walk-row:last-child { border-bottom:none; }
-    .walk-row-date { font-size:12px; color:var(--muted); margin-top:2px; }
-    .walk-row-dist { font-size:16px; font-weight:700; font-family:'DM Mono',monospace; }
-    .badge {
-      font-size:11px; font-weight:600; padding:3px 10px; border-radius:99px;
-    }
-    .badge-green { background:#DCFCE7; color:#16A34A; }
-    .badge-yellow { background:#FEF9C3; color:#A16207; }
-
-    /* ── META ITEM ───────────────────────────────── */
-    .meta-item { margin-bottom:18px; }
-    .meta-item:last-child { margin-bottom:0; }
-    .meta-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
-    .meta-name { font-size:15px; font-weight:600; display:flex; align-items:center; gap:8px; }
-    .meta-pct  { font-size:14px; font-weight:700; color:var(--accent); font-family:'DM Mono',monospace; }
-    .meta-sub  { font-size:12px; color:var(--muted); margin-bottom:8px; }
-
-    /* ── PERFIL ──────────────────────────────────── */
-    .perfil-avatar {
-      width:78px; height:78px; border-radius:50%;
-      background: linear-gradient(135deg,var(--primary),#475569);
-      display:flex; align-items:center; justify-content:center; margin:0 auto 12px;
-      color:#fff;
-    }
-    .perfil-name { text-align:center; font-size:22px; font-weight:800; }
-    .perfil-email { text-align:center; font-size:13px; color:var(--muted); margin-bottom:22px; }
-    .menu-item {
-      display:flex; align-items:center; gap:14px;
-      padding:15px 0; border-bottom:1px solid var(--border); cursor:pointer;
-    }
-    .menu-item:last-child { border-bottom:none; }
-    .menu-ic-wrap {
-      width:38px; height:38px; border-radius:11px;
-      background:#F1F5F9; display:flex; align-items:center; justify-content:center;
-      flex-shrink:0;
-    }
-    .menu-lbl { font-size:15px; font-weight:600; }
-    .menu-arrow { margin-left:auto; color:var(--muted); }
-
-    /* ── FAB ─────────────────────────────────────── */
-    #fab {
-      position:fixed; right:18px;
-      bottom: calc(var(--tab-h) + env(safe-area-inset-bottom) + 14px);
-      width:52px; height:52px; border-radius:50%;
-      background:var(--accent); border:none; cursor:pointer; z-index:90;
-      box-shadow: 0 4px 18px rgba(249,115,22,.4);
-      display:flex; align-items:center; justify-content:center; color:#fff;
-      transition: transform .15s;
-    }
-    #fab:active { transform:scale(.92); }
-
-    /* ── MODAL BOTTOM SHEET ──────────────────────── */
-    .modal-overlay {
-      display:none; position:fixed; inset:0; z-index:200;
-      background:rgba(0,0,0,.45); backdrop-filter:blur(4px);
-      align-items:flex-end; justify-content:center;
-    }
-    .modal-overlay.open { display:flex; }
-    .modal-sheet {
-      background:#fff; border-radius:24px 24px 0 0;
-      padding:20px 20px 28px; width:100%; max-width:480px;
-      padding-bottom: calc(28px + env(safe-area-inset-bottom));
-      transform:translateY(100%); transition:transform .3s cubic-bezier(.32,0,.67,0);
-    }
-    .modal-overlay.open .modal-sheet { transform:translateY(0); transition:transform .35s cubic-bezier(.16,1,.3,1); }
-    .modal-handle {
-      width:40px; height:4px; border-radius:99px;
-      background:var(--border); margin:0 auto 20px;
-    }
-    .modal-title { font-size:19px; font-weight:800; margin-bottom:18px; }
-    .f-lbl { font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; margin-bottom:6px; }
-    .f-input {
-      width:100%; padding:13px 14px; border-radius:12px;
-      border:1.5px solid var(--border); font-family:inherit; font-size:15px;
-      outline:none; transition:border-color .15s; margin-bottom:14px; background:var(--bg);
-    }
-    .f-input:focus { border-color:var(--accent); }
-
-    /* ── CONQUISTAS GRID ─────────────────────────── */
-    .achv-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
-    .achv-card {
-      text-align:center; padding:14px 10px; background:var(--bg);
-      border-radius:14px; border:1px solid var(--border);
-    }
-    .achv-val { font-size:26px; font-weight:800; color:var(--accent); }
-    .achv-lbl { font-size:11px; color:var(--muted); margin-top:3px; }
-
-    /* ── MISC ────────────────────────────────────── */
-    .divider { height:1px; background:var(--border); margin: 14px 0; }
-    .page-title { font-size:22px; font-weight:800; margin-bottom:2px; }
-    .page-sub { font-size:13px; color:var(--muted); margin-bottom:18px; }
-    .row-between { display:flex; justify-content:space-between; align-items:center; }
-    .txt-mono { font-family:'DM Mono',monospace; }
-    .txt-muted { color:var(--muted); }
-    .txt-accent { color:var(--accent); }
-    .txt-success { color:var(--success); }
-    .txt-error { color:var(--error); }
-    .gap-row { display:flex; align-items:center; gap:8px; }
-
-    /* ── AUTH SCREEN ─────────────────────────────── */
-    #auth-screen {
-      position:fixed; inset:0; z-index:400;
-      display:flex; flex-direction:column; background:var(--bg);
-    }
-    .auth-hero {
-      background:linear-gradient(160deg,var(--primary) 0%,#334155 100%);
-      padding:60px 32px 44px;
-      display:flex; flex-direction:column; align-items:center;
-    }
-    .auth-logo-ring {
-      width:72px; height:72px; border-radius:22px;
-      background:var(--accent); display:flex; align-items:center; justify-content:center;
-      margin-bottom:16px; box-shadow:0 8px 24px rgba(249,115,22,.4);
-    }
-    .auth-app-name { font-size:30px; font-weight:800; color:#fff; letter-spacing:-1px; }
-    .auth-app-name span { color:var(--accent); }
-    .auth-tagline { font-size:13px; color:#94A3B8; margin-top:6px; text-align:center; }
-    .auth-card {
-      background:var(--card); border-radius:28px 28px 0 0;
-      padding:28px 24px 40px; flex:1; overflow-y:auto;
-      box-shadow:0 -4px 24px rgba(0,0,0,.08);
-    }
-    .auth-tabs {
-      display:grid; grid-template-columns:1fr 1fr;
-      background:#F1F5F9; border-radius:12px; padding:4px; margin-bottom:22px;
-    }
-    .auth-tab {
-      padding:10px; border-radius:9px; border:none; background:transparent;
-      font-family:inherit; font-size:14px; font-weight:700; cursor:pointer;
-      color:var(--muted); transition:all .2s;
-    }
-    .auth-tab.active { background:#fff; color:var(--text); box-shadow:0 1px 6px rgba(0,0,0,.1); }
-    .auth-title { font-size:21px; font-weight:800; margin-bottom:3px; }
-    .auth-sub   { font-size:13px; color:var(--muted); margin-bottom:20px; }
-    .auth-error {
-      background:#FEF2F2; border:1px solid #FECACA; border-radius:10px;
-      padding:10px 14px; font-size:13px; color:var(--error); font-weight:600;
-      margin-bottom:12px; display:none;
-    }
-    .auth-error.show { display:block; }
-    .auth-btn {
-      width:100%; padding:15px; border-radius:14px;
-      background:var(--accent); color:#fff; font-weight:700; font-size:16px;
-      border:none; cursor:pointer; font-family:inherit; margin-top:4px;
-      display:flex; align-items:center; justify-content:center; gap:8px;
-      transition:transform .15s, opacity .15s;
-    }
-    .auth-btn:active { transform:scale(.98); }
-    .auth-btn:disabled { opacity:.6; cursor:not-allowed; }
-    .auth-btn .spin { width:18px; height:18px; border:2.5px solid rgba(255,255,255,.3); border-top-color:#fff; border-radius:50%; animation:spin .7s linear infinite; display:none; }
-    .auth-btn.loading .btn-txt { display:none; }
-    .auth-btn.loading .spin { display:block; }
-    .auth-forgot { text-align:center; margin-top:14px; font-size:13px; color:var(--muted); }
-    .auth-forgot a { color:var(--accent); font-weight:600; cursor:pointer; }
-    @keyframes spin { to { transform:rotate(360deg); } }
-    /* Loader inicial */
-    #app-loader {
-      position:fixed; inset:0; z-index:500;
-      background:var(--primary); display:flex; flex-direction:column;
-      align-items:center; justify-content:center; gap:14px;
-    }
-    #app-loader .ld-name { font-size:26px; font-weight:800; color:#fff; }
-    #app-loader .ld-name span { color:var(--accent); }
-    #app-loader .ld-ring { width:38px; height:38px; border:3px solid rgba(255,255,255,.2); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
-    /* ── TEMA ESCURO ─────────────────────────────── */
-    body.dark {
-      --primary:  #0F172A;
-      --bg:       #1E293B;
-      --text:     #F1F5F9;
-      --card:     #263347;
-      --border:   #334155;
-      --muted:    #64748B;
-    }
-    body.dark .auth-card,
-    body.dark #navbar,
-    body.dark #topbar { background: var(--primary); }
-    body.dark .prog-bg { background:#334155; }
-    body.dark .achv-card { background:#1E293B; }
-    body.dark .f-input { background:#1E293B; color:var(--text); border-color:var(--border); }
-    body.dark .f-input::placeholder { color:var(--muted); }
-    body.dark .auth-tabs { background:#263347; }
-    body.dark .auth-tab.active { background:#334155; color:var(--text); }
-    body.dark .modal-sheet { background:var(--primary); }
-    body.dark .habit-ic-wrap { background:#263347 !important; }
-    body.dark .menu-ic-wrap { background:#263347 !important; }
-    body.dark .stat-card { background:#263347; }
-  </style>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="FITDay"/>
+<meta name="theme-color" content="#111827"/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="apple-touch-icon" href="icons/icon-192.png"/>
+<title>FITDay</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ── TOKENS ──────────────────────────────────────────────────── */
+:root{
+  --c-bg:#F0F4F8; --c-card:#FFFFFF; --c-border:#E2E8F0;
+  --c-text:#0F172A; --c-muted:#64748B; --c-hint:#94A3B8;
+  --c-primary:#111827; --c-accent:#F97316; --c-accent-lt:#FFF7ED;
+  --c-green:#16A34A; --c-green-lt:#DCFCE7;
+  --c-blue:#2563EB; --c-blue-lt:#EFF6FF;
+  --c-red:#DC2626; --c-red-lt:#FEF2F2;
+  --c-amber:#D97706; --c-amber-lt:#FFFBEB;
+  --tab-h:64px; --top-h:52px;
+  --r-sm:10px; --r-md:14px; --r-lg:18px; --r-xl:22px; --r-full:999px;
+}
+body.dark{
+  --c-bg:#0F172A; --c-card:#1E293B; --c-border:#334155;
+  --c-text:#F1F5F9; --c-muted:#94A3B8; --c-hint:#475569;
+  --c-primary:#0F172A; --c-accent-lt:#431407;
+  --c-green-lt:#14532D; --c-blue-lt:#1E3A5F;
+  --c-red-lt:#450A0A; --c-amber-lt:#451A03;
+}
+/* ── RESET ────────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html{font-size:16px}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--c-bg);color:var(--c-text);min-height:100dvh;overflow-x:hidden;transition:background .2s,color .2s}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+input,select,textarea{font-family:inherit;outline:none}
+a{text-decoration:none;color:inherit}
+/* ── LOADER ───────────────────────────────────────────────────── */
+#loader{position:fixed;inset:0;z-index:999;background:#111827;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .3s}
+#loader.hide{opacity:0;pointer-events:none}
+.loader-logo{width:72px;height:72px;border-radius:20px;background:var(--c-accent);display:flex;align-items:center;justify-content:center}
+.loader-name{font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px}
+.loader-name b{color:var(--c-accent)}
+.spin{width:32px;height:32px;border:3px solid rgba(255,255,255,.15);border-top-color:var(--c-accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* ── AUTH ─────────────────────────────────────────────────────── */
+#auth{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;background:var(--c-bg);overflow-y:auto}
+#auth.hidden{display:none}
+.auth-top{background:#111827;padding:56px 28px 40px;display:flex;flex-direction:column;align-items:center;gap:12px;flex-shrink:0}
+.auth-logo{width:68px;height:68px;border-radius:20px;background:var(--c-accent);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 28px rgba(249,115,22,.4)}
+.auth-appname{font-size:28px;font-weight:800;color:#fff;letter-spacing:-1px}
+.auth-appname b{color:var(--c-accent)}
+.auth-tagline{font-size:13px;color:#94A3B8;text-align:center}
+.auth-body{background:var(--c-card);border-radius:24px 24px 0 0;padding:26px 22px 48px;flex:1}
+.auth-tabs{display:grid;grid-template-columns:1fr 1fr;background:var(--c-bg);border-radius:var(--r-md);padding:4px;margin-bottom:22px}
+.auth-tab{padding:10px;border-radius:var(--r-sm);background:transparent;font-size:14px;font-weight:700;color:var(--c-muted);transition:all .2s}
+.auth-tab.on{background:var(--c-card);color:var(--c-text);box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.form-block{display:none}
+.form-block.on{display:block}
+.field-lbl{font-size:11px;font-weight:700;color:var(--c-muted);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px}
+.field-inp{width:100%;padding:13px 14px;border-radius:var(--r-md);border:1.5px solid var(--c-border);font-size:15px;background:var(--c-bg);color:var(--c-text);margin-bottom:14px;transition:border-color .15s}
+.field-inp:focus{border-color:var(--c-accent)}
+.field-inp:disabled{opacity:.45;cursor:not-allowed}
+.auth-err{background:var(--c-red-lt);border:1px solid var(--c-red);border-radius:var(--r-sm);padding:10px 13px;font-size:13px;color:var(--c-red);font-weight:600;margin-bottom:12px;display:none}
+.auth-err.on{display:block}
+.auth-sub-link{text-align:center;margin-top:13px;font-size:13px;color:var(--c-muted)}
+.auth-sub-link a{color:var(--c-accent);font-weight:600;cursor:pointer}
+/* ── APP SHELL ────────────────────────────────────────────────── */
+#app{display:none;flex-direction:column;min-height:100dvh}
+#app.on{display:flex}
+/* ── TOPBAR ───────────────────────────────────────────────────── */
+#topbar{position:fixed;top:0;left:0;right:0;z-index:200;background:#111827;height:calc(var(--top-h) + env(safe-area-inset-top));padding:calc(env(safe-area-inset-top) + 10px) 18px 10px;display:flex;align-items:center;justify-content:space-between}
+.tb-logo{display:flex;align-items:center;gap:9px}
+.tb-ring{width:30px;height:30px;border-radius:9px;background:var(--c-accent);display:flex;align-items:center;justify-content:center}
+.tb-name{font-size:17px;font-weight:800;color:#fff;letter-spacing:-.5px}
+.tb-name b{color:var(--c-accent)}
+.tb-avatar{width:34px;height:34px;border-radius:50%;background:var(--c-accent);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;cursor:pointer;user-select:none;flex-shrink:0}
+/* ── INSTALL BANNER ───────────────────────────────────────────── */
+#ibanner{display:none;position:fixed;top:calc(var(--top-h) + env(safe-area-inset-top));left:0;right:0;z-index:199;background:var(--c-accent);padding:9px 14px;align-items:center;gap:10px}
+#ibanner.on{display:flex}
+#ibanner p{flex:1;font-size:13px;font-weight:600;color:#fff}
+.ib-btn{background:#fff;color:var(--c-accent);border-radius:8px;padding:5px 13px;font-size:13px;font-weight:700;flex-shrink:0}
+.ib-x{background:transparent;color:rgba(255,255,255,.7);padding:4px;flex-shrink:0;display:flex}
+/* ── MAIN SCROLL ──────────────────────────────────────────────── */
+#main{flex:1;padding-top:calc(var(--top-h) + env(safe-area-inset-top));padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 6px)}
+#main.banner{padding-top:calc(var(--top-h) + env(safe-area-inset-top) + 42px)}
+/* ── PAGES ────────────────────────────────────────────────────── */
+.page{display:none;padding:18px 15px 4px}
+.page.on{display:block}
+@keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.page.on > *{animation:up .25s ease both}
+.page.on > *:nth-child(2){animation-delay:.04s}
+.page.on > *:nth-child(3){animation-delay:.08s}
+.page.on > *:nth-child(4){animation-delay:.12s}
+.page.on > *:nth-child(5){animation-delay:.16s}
+/* ── NAVBAR ───────────────────────────────────────────────────── */
+#navbar{position:fixed;bottom:0;left:0;right:0;z-index:200;background:var(--c-card);border-top:1px solid var(--c-border);display:flex;height:calc(var(--tab-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 16px rgba(0,0,0,.06)}
+.nb{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:transparent;color:var(--c-hint);transition:color .15s;position:relative}
+.nb span{font-size:9px;font-weight:700;letter-spacing:.7px;text-transform:uppercase}
+.nb.on{color:var(--c-accent)}
+.nb.on::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:26px;height:3px;border-radius:0 0 3px 3px;background:var(--c-accent)}
+/* ── FAB ──────────────────────────────────────────────────────── */
+#fab{position:fixed;right:17px;bottom:calc(var(--tab-h) + env(safe-area-inset-bottom) + 13px);width:50px;height:50px;border-radius:50%;background:var(--c-accent);z-index:150;display:none;align-items:center;justify-content:center;color:#fff;box-shadow:0 4px 18px rgba(249,115,22,.4);transition:transform .12s}
+#fab.on{display:flex}
+#fab:active{transform:scale(.9)}
+/* ── CARDS / UTILS ────────────────────────────────────────────── */
+.card{background:var(--c-card);border-radius:var(--r-xl);border:1px solid var(--c-border);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.cp{padding:17px}
+.mb1{margin-bottom:10px}
+.mb2{margin-bottom:14px}
+.mb3{margin-bottom:18px}
+.row{display:flex;align-items:center}
+.sb{justify-content:space-between}
+.gap2{gap:8px}
+.gap3{gap:12px}
+.flex1{flex:1}
+.mono{font-family:'DM Mono',monospace}
+.muted{color:var(--c-muted)}
+.hint{color:var(--c-hint)}
+.accent{color:var(--c-accent)}
+.bold{font-weight:700}
+.xbold{font-weight:800}
+.sec{font-size:10.5px;font-weight:700;color:var(--c-hint);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px}
+/* ── PROGRESS BAR ─────────────────────────────────────────────── */
+.pbar{background:var(--c-border);border-radius:var(--r-full);overflow:hidden}
+.ph6{height:6px}
+.ph8{height:8px}
+.ph10{height:10px}
+.pf{height:100%;border-radius:var(--r-full);transition:width .7s cubic-bezier(.34,1.56,.64,1)}
+.pf-orange{background:linear-gradient(90deg,#F97316,#FB923C)}
+.pf-green{background:linear-gradient(90deg,#16A34A,#4ADE80)}
+.pf-blue{background:linear-gradient(90deg,#2563EB,#38BDF8)}
+/* ── STREAK CARD ──────────────────────────────────────────────── */
+.streak-card{background:linear-gradient(140deg,#111827 0%,#1E293B 100%);border-radius:var(--r-xl);padding:20px;margin-bottom:13px;display:flex;align-items:center;justify-content:space-between}
+.streak-n{font-size:48px;font-weight:800;color:#fff;line-height:1;font-family:'DM Mono',monospace}
+.streak-lbl{font-size:12px;color:#94A3B8;margin-top:3px}
+.streak-sub{font-size:11px;color:#475569;margin-top:8px}
+/* ── STAT GRID ────────────────────────────────────────────────── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:13px}
+.stat-card{background:var(--c-card);border-radius:var(--r-lg);padding:14px;border:1px solid var(--c-border)}
+.stat-v{font-size:21px;font-weight:800;font-family:'DM Mono',monospace;margin-top:8px}
+.stat-l{font-size:12px;color:var(--c-muted);margin-top:1px}
+/* ── HABIT ITEM ───────────────────────────────────────────────── */
+.habit-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--c-border)}
+.habit-row:last-child{border-bottom:none}
+.hic{width:38px;height:38px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.hname{font-size:14px;font-weight:600}
+.hstreak{font-size:11px;color:var(--c-muted);margin-top:2px;display:flex;align-items:center;gap:3px}
+.chk{width:26px;height:26px;border-radius:7px;border:2px solid var(--c-border);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer;transition:all .18s;background:transparent;color:transparent}
+.chk.done{background:var(--c-green);border-color:var(--c-green);color:#fff}
+/* ── WALK HERO ────────────────────────────────────────────────── */
+.walk-hero{background:linear-gradient(150deg,#0C1831 0%,#1E293B 100%);border-radius:var(--r-xl);padding:24px 20px;margin-bottom:13px;color:#fff}
+.wh-today{font-size:50px;font-weight:800;line-height:1;font-family:'DM Mono',monospace}
+.wh-metrics{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:18px}
+.wh-mv{font-size:19px;font-weight:800;font-family:'DM Mono',monospace}
+.wh-ml{font-size:11px;color:#64748B;margin-top:2px}
+/* ── WALK HISTORY ROW ─────────────────────────────────────────── */
+.walk-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--c-border)}
+.walk-row:last-child{border-bottom:none}
+.wr-dist{font-size:15px;font-weight:700;font-family:'DM Mono',monospace}
+.wr-meta{font-size:11px;color:var(--c-muted);margin-top:2px}
+.badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:var(--r-full)}
+.bg-green{background:var(--c-green-lt);color:var(--c-green)}
+.bg-amber{background:var(--c-amber-lt);color:var(--c-amber)}
+/* ── META ITEM ────────────────────────────────────────────────── */
+.goal-item{padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--c-border)}
+.goal-item:last-child{padding-bottom:0;margin-bottom:0;border-bottom:none}
+.goal-name{font-size:14px;font-weight:700}
+.goal-pct{font-size:15px;font-weight:800;color:var(--c-accent);font-family:'DM Mono',monospace}
+.goal-sub{font-size:12px;color:var(--c-muted);margin:3px 0 8px}
+/* ── PERFIL ───────────────────────────────────────────────────── */
+.pf-avatar{width:76px;height:76px;border-radius:50%;background:linear-gradient(135deg,#111827,#475569);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:30px;font-weight:800;color:#fff}
+.pf-name{text-align:center;font-size:21px;font-weight:800}
+.pf-email{text-align:center;font-size:13px;color:var(--c-muted);margin-bottom:20px}
+.menu-row{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--c-border);cursor:pointer}
+.menu-row:last-child{border-bottom:none}
+.menu-ic{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.menu-lbl{font-size:14px;font-weight:600;flex:1}
+.menu-arr{color:var(--c-hint)}
+/* ── ACHV GRID ────────────────────────────────────────────────── */
+.achv-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.achv-card{background:var(--c-bg);border-radius:var(--r-md);border:1px solid var(--c-border);padding:13px 10px;text-align:center}
+.achv-v{font-size:24px;font-weight:800;color:var(--c-accent)}
+.achv-l{font-size:11px;color:var(--c-muted);margin-top:3px}
+/* ── MODAL ────────────────────────────────────────────────────── */
+.overlay{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);align-items:flex-end;justify-content:center}
+.overlay.on{display:flex}
+.sheet{background:var(--c-card);border-radius:22px 22px 0 0;padding:18px 18px calc(28px + env(safe-area-inset-bottom));width:100%;max-width:480px;max-height:92dvh;overflow-y:auto;transform:translateY(100%);transition:transform .32s cubic-bezier(.16,1,.3,1)}
+.overlay.on .sheet{transform:translateY(0)}
+.sheet-handle{width:38px;height:4px;border-radius:var(--r-full);background:var(--c-border);margin:0 auto 18px}
+.sheet-title{font-size:18px;font-weight:800;margin-bottom:16px}
+/* ── BUTTONS ──────────────────────────────────────────────────── */
+.btn{width:100%;padding:14px;border-radius:var(--r-lg);font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,opacity .15s}
+.btn:active{transform:scale(.98)}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+.btn-primary{background:var(--c-accent);color:#fff;box-shadow:0 4px 14px rgba(249,115,22,.28)}
+.btn-danger{background:var(--c-red);color:#fff}
+/* ── EMPTY STATE ──────────────────────────────────────────────── */
+.empty{text-align:center;padding:32px 16px;color:var(--c-muted)}
+.empty .ei{font-size:34px;margin-bottom:10px;opacity:.35}
+.empty p{font-size:14px;line-height:1.6}
+.empty small{font-size:12px}
+/* ── EVOLUTION ROW ────────────────────────────────────────────── */
+.ev-row{display:flex;align-items:flex-start;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--c-border)}
+.ev-row:last-child{border-bottom:none}
+.ev-val{font-size:14px;font-weight:700}
+.ev-dt{font-size:11px;color:var(--c-muted);margin-top:2px}
+/* ── IC UTILS ─────────────────────────────────────────────────── */
+.ic{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block;flex-shrink:0}
+</style>
 </head>
 <body>
 
-<!-- ═══ LOADER ════════════════════════════════════════════════════════════ -->
-<div id="app-loader">
-  <div style="width:64px;height:64px;border-radius:20px;background:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:4px;">
-    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M4 17l3-3 2.5 2.5L14 12l-2-4h4l2-3"/><path d="M3 21l3.5-3.5"/></svg>
-  </div>
-  <div class="ld-name">FIT<span>Day</span></div>
-  <div class="ld-ring"></div>
-</div>
-
-<!-- ═══ AUTH SCREEN ═══════════════════════════════════════════════════════ -->
-<div id="auth-screen" style="display:none;">
-  <div class="auth-hero">
-    <div class="auth-logo-ring">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="13" cy="4" r="2"/><path d="M4 17l3-3 2.5 2.5L14 12l-2-4h4l2-3"/><path d="M3 21l3.5-3.5"/></svg>
-    </div>
-    <div class="auth-app-name">FIT<span>Day</span></div>
-    <div class="auth-tagline">Caminhadas, hábitos e metas em um só lugar.</div>
-  </div>
-  <div class="auth-card">
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tab-login"  onclick="switchTab('login')">Entrar</button>
-      <button class="auth-tab"        id="tab-signup" onclick="switchTab('signup')">Criar conta</button>
-    </div>
-    <!-- Login -->
-    <div id="form-login">
-      <div class="auth-title">Bem-vindo de volta!</div>
-      <div class="auth-sub">Entre com e-mail e senha</div>
-      <div class="auth-error" id="err-login"></div>
-      <div class="f-lbl">E-mail</div>
-      <input class="f-input" id="login-email" type="email" inputmode="email" placeholder="seu@email.com" autocomplete="email"/>
-      <div class="f-lbl">Senha</div>
-      <input class="f-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"/>
-      <button class="auth-btn" id="btn-login" onclick="doLogin()">
-        <span class="btn-txt">Entrar</span><div class="spin"></div>
-      </button>
-      <div class="auth-forgot"><a onclick="doReset()">Esqueci minha senha</a></div>
-    </div>
-    <!-- Cadastro -->
-    <div id="form-signup" style="display:none;">
-      <div class="auth-title">Crie sua conta</div>
-      <div class="auth-sub">Comece sua jornada fitness hoje</div>
-      <div class="auth-error" id="err-signup"></div>
-      <div class="f-lbl">Nome</div>
-      <input class="f-input" id="signup-name" type="text" placeholder="Seu nome" autocomplete="name"/>
-      <div class="f-lbl">E-mail</div>
-      <input class="f-input" id="signup-email" type="email" inputmode="email" placeholder="seu@email.com" autocomplete="email"/>
-      <div class="f-lbl">Senha</div>
-      <input class="f-input" id="signup-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"/>
-      <button class="auth-btn" id="btn-signup" onclick="doSignup()">
-        <span class="btn-txt">Criar conta</span><div class="spin"></div>
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ SVG ICON DEFS (reference with <use href="#ic-xxx\"/>) ════════════════ -->
-<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
-  <!-- nav -->
-  <symbol id="ic-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
-  <symbol id="ic-walk" viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><path d="M14.5 9.5l-1.5 5-3 2-1-6"/><path d="M10 9.5l-2 4 1.5 4.5"/><path d="M14 14.5l2 4.5"/></symbol>
-  <symbol id="ic-habits" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
-  <symbol id="ic-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
-  <symbol id="ic-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
-  <!-- content -->
-  <symbol id="ic-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
-  <symbol id="ic-drop" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></symbol>
-  <symbol id="ic-check-sq" viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
-  <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
-  <symbol id="ic-phone-off" viewBox="0 0 24 24"><line x1="1" y1="1" x2="23" y2="23"/><path d="M9 3.17A10 10 0 0 1 22 16.83M16.48 16.48A3 3 0 0 1 14 21c-7 0-11-4-11-11a3 3 0 0 1 4.52-2.48"/></symbol>
-  <symbol id="ic-brain" viewBox="0 0 24 24"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2z"/><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-1.98-3A2.5 2.5 0 0 0 14.5 2z"/></symbol>
-  <symbol id="ic-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
-  <symbol id="ic-chevron-r" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
-  <symbol id="ic-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></symbol>
-  <symbol id="ic-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
-  <symbol id="ic-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
-  <symbol id="ic-trophy" viewBox="0 0 24 24"><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="12"/><path d="M7 4h10l1 7a5 5 0 0 1-5 5 5 5 0 0 1-5-5z"/><path d="M5 4H3v4a2 2 0 0 0 2 2"/><path d="M19 4h2v4a2 2 0 0 1-2 2"/></symbol>
-  <symbol id="ic-timer" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
-  <symbol id="ic-zap" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></symbol>
-  <symbol id="ic-bars" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></symbol>
-  <symbol id="ic-apple" viewBox="0 0 24 24"><path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06z"/><path d="M10 2c1 .5 2 2 2 5"/></symbol>
-  <symbol id="ic-salad" viewBox="0 0 24 24"><path d="M7 21h10"/><path d="M12 21a9 9 0 0 0 9-9H3a9 9 0 0 0 9 9z"/><path d="M11.38 12a2.4 2.4 0 0 1-.4-4.77 2.4 2.4 0 0 1 3.2-3.19 2.4 2.4 0 0 1 3.47-.63 2.4 2.4 0 0 1 3.37 3.37 2.4 2.4 0 0 1-1.1 3.7 2.51 2.51 0 0 1 .03 1.5"/></symbol>
-  <symbol id="ic-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
-  <symbol id="ic-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
-  <symbol id="ic-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
-  <symbol id="ic-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
-  <symbol id="ic-run" viewBox="0 0 24 24"><circle cx="13" cy="4" r="2"/><path d="M4 17l3-3 2.5 2.5L14 12l-2-4h4l2-3"/><path d="M3 21l3.5-3.5"/></symbol>
-  <symbol id="ic-award" viewBox="0 0 24 24"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></symbol>
-  <symbol id="ic-ruler" viewBox="0 0 24 24"><path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4z"/><path d="m7.5 10.5 2 2"/><path d="m10.5 7.5 2 2"/><path d="m13.5 4.5 2 2"/><path d="m4.5 13.5 2 2"/></symbol>
-  <symbol id="ic-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
-  <symbol id="ic-play" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></symbol>
-  <symbol id="ic-kcal" viewBox="0 0 24 24"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/><path d="M12 12c-1.5 2-2 3.5-2 5 0 2 1 3 2 3s2-1 2-3c0-1.5-.5-3-2-5z" fill="currentColor" stroke="none" opacity=".4"/></symbol>
-  <symbol id="ic-profile-edit" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M17 11l2 2 4-4" stroke-width="1.8"/></symbol>
+<!-- ICONS SPRITE -->
+<svg style="display:none">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+  <symbol id="i-walk" viewBox="0 0 24 24"><circle cx="13" cy="4" r="2"/><path d="M5 17l3-3 2.5 2.5L14 12l-2-4h4l2-3"/><path d="M3 21l3.5-3.5"/></symbol>
+  <symbol id="i-check-sq" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.07-2.14-.22-4.05 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.15.43-2.29 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></symbol>
+  <symbol id="i-arr-r" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
+  <symbol id="i-scale" viewBox="0 0 24 24"><path d="M12 3a1 1 0 0 0-1 1v1H5a2 2 0 0 0-2 2l3 11h12l3-11a2 2 0 0 0-2-2h-6V4a1 1 0 0 0-1-1z"/><line x1="5" y1="21" x2="19" y2="21"/></symbol>
+  <symbol id="i-activity" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></symbol>
+  <symbol id="i-ruler" viewBox="0 0 24 24"><path d="M21.3 8.7 8.7 21.3c-1 1-2.5 1-3.4 0l-2.6-2.6c-1-1-1-2.5 0-3.4L15.3 2.7c1-1 2.5-1 3.4 0l2.6 2.6c1 1 1 2.5 0 3.4z"/><path d="m7.5 10.5 2 2m1-4 2 2m1-4 2 2m-8 8 2 2"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><polyline points="8 21 12 17 16 21"/><line x1="12" y1="17" x2="12" y2="12"/><path d="M7 4h10l1 7a5 5 0 0 1-5 5 5 5 0 0 1-5-5z"/><path d="M5 4H3v4a2 2 0 0 0 2 2M19 4h2v4a2 2 0 0 1-2 2"/></symbol>
+  <symbol id="i-timer" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></symbol>
 </svg>
 
-<!-- ═══ TOP BAR ════════════════════════════════════════════════════════════ -->
-<div id="topbar">
-  <div class="logo-wrap">
-    <div class="logo-icon-bg">
-      <svg width="18" height="18" class="ic" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-run"/></svg>
-    </div>
-    <div class="logo-text">FIT<span>Day</span></div>
+<!-- LOADER -->
+<div id="loader">
+  <div class="loader-logo"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-walk"/></svg></div>
+  <div class="loader-name">FIT<b>Day</b></div>
+  <div class="spin"></div>
+</div>
+
+<!-- AUTH -->
+<div id="auth" class="hidden">
+  <div class="auth-top">
+    <div class="auth-logo"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-walk"/></svg></div>
+    <div class="auth-appname">FIT<b>Day</b></div>
+    <div class="auth-tagline">Caminhadas, hábitos e metas. Tudo em um lugar.</div>
   </div>
-  <div class="avatar-btn">
-    <svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-user"/></svg>
+  <div class="auth-body">
+    <div class="auth-tabs">
+      <button class="auth-tab on" id="atab-in" onclick="switchTab('in')">Entrar</button>
+      <button class="auth-tab" id="atab-up" onclick="switchTab('up')">Criar conta</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div class="form-block on" id="form-in">
+      <p style="font-size:19px;font-weight:800;margin-bottom:3px">Bem-vindo de volta!</p>
+      <p class="muted" style="font-size:13px;margin-bottom:18px">Entre com e-mail e senha</p>
+      <div class="auth-err" id="err-in"></div>
+      <div class="field-lbl">E-mail</div>
+      <input class="field-inp" id="in-email" type="email" inputmode="email" placeholder="seu@email.com" autocomplete="email"/>
+      <div class="field-lbl">Senha</div>
+      <input class="field-inp" id="in-pass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      <button class="btn btn-primary" id="btn-in" onclick="doLogin()">
+        <span class="btxt">Entrar</span>
+        <div class="bspin" style="display:none;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></div>
+      </button>
+      <div class="auth-sub-link"><a onclick="doReset()">Esqueci minha senha</a></div>
+    </div>
+
+    <!-- CADASTRO -->
+    <div class="form-block" id="form-up">
+      <p style="font-size:19px;font-weight:800;margin-bottom:3px">Crie sua conta</p>
+      <p class="muted" style="font-size:13px;margin-bottom:18px">Comece sua jornada hoje</p>
+      <div class="auth-err" id="err-up"></div>
+      <div class="field-lbl">Nome</div>
+      <input class="field-inp" id="up-name" type="text" placeholder="Seu nome" autocomplete="name"/>
+      <div class="field-lbl">E-mail</div>
+      <input class="field-inp" id="up-email" type="email" inputmode="email" placeholder="seu@email.com" autocomplete="email"/>
+      <div class="field-lbl">Senha</div>
+      <input class="field-inp" id="up-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"/>
+      <button class="btn btn-primary" id="btn-up" onclick="doSignup()">
+        <span class="btxt">Criar conta</span>
+        <div class="bspin" style="display:none;width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite"></div>
+      </button>
+    </div>
   </div>
 </div>
 
-<!-- ═══ INSTALL BANNER ════════════════════════════════════════════════════ -->
-<div id="install-banner">
-  <p>📲 Instale o FITDay no seu celular!</p>
-  <button id="btn-install">Instalar</button>
-  <button class="close-banner" id="btn-close-banner">
-    <svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-x"/></svg>
+<!-- APP -->
+<div id="app">
+  <!-- TOP BAR -->
+  <div id="topbar">
+    <div class="tb-logo">
+      <div class="tb-ring"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#i-walk"/></svg></div>
+      <div class="tb-name">FIT<b>Day</b></div>
+    </div>
+    <div class="tb-avatar" id="tb-avatar" onclick="nav('profile',document.querySelector('[data-p=profile]'))">D</div>
+  </div>
+
+  <!-- INSTALL BANNER -->
+  <div id="ibanner">
+    <p>📲 Instale o FITDay no seu celular!</p>
+    <button class="ib-btn" id="btn-install">Instalar</button>
+    <button class="ib-x" id="btn-close-ib"><svg class="ic" width="18" height="18"><use href="#i-x"/></svg></button>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main">
+
+    <!-- ══ HOME ══════════════════════════════════════════════════ -->
+    <div class="page on" id="pg-home">
+      <div style="margin-bottom:16px">
+        <div style="font-size:22px;font-weight:800;line-height:1.2" id="h-greeting">Olá! 👋</div>
+        <div style="font-size:13px;margin-top:3px" id="h-date" class="muted">—</div>
+      </div>
+
+      <!-- Streak -->
+      <div class="streak-card">
+        <div>
+          <div class="streak-n" id="h-streak">0</div>
+          <div class="streak-lbl">dias seguidos</div>
+          <div class="streak-sub" id="h-streak-msg">Comece hoje!</div>
+        </div>
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="#F97316" stroke="none" style="opacity:.9"><use href="#i-flame"/></svg>
+      </div>
+
+      <!-- Stats 2x2 -->
+      <div class="stat-grid">
+        <div class="stat-card">
+          <svg class="ic" width="22" height="22" style="color:var(--c-accent)"><use href="#i-walk"/></svg>
+          <div class="stat-v" id="h-km">—</div><div class="stat-l">km hoje</div>
+        </div>
+        <div class="stat-card">
+          <svg class="ic" width="22" height="22" style="color:var(--c-green)"><use href="#i-check-sq"/></svg>
+          <div class="stat-v" id="h-hab">—</div><div class="stat-l">hábitos hoje</div>
+        </div>
+        <div class="stat-card">
+          <svg class="ic" width="22" height="22" style="color:var(--c-blue)"><use href="#i-activity"/></svg>
+          <div class="stat-v" id="h-walks-w">—</div><div class="stat-l">caminhadas semana</div>
+        </div>
+        <div class="stat-card">
+          <svg class="ic" width="22" height="22" style="color:var(--c-accent)"><use href="#i-trophy"/></svg>
+          <div class="stat-v" id="h-meta">—</div><div class="stat-l">meta semanal</div>
+        </div>
+      </div>
+
+      <!-- Progresso -->
+      <div class="card cp mb2">
+        <div class="sec">Progresso de hoje</div>
+        <div class="row sb mb1">
+          <span class="row gap2 bold" style="font-size:13px">
+            <svg class="ic" width="16" height="16" style="color:var(--c-accent)"><use href="#i-walk"/></svg> Distância
+          </span>
+          <span class="muted mono" style="font-size:12px" id="h-prog-walk-lbl">0 km</span>
+        </div>
+        <div class="pbar ph8 mb2"><div class="pf pf-orange" id="h-prog-walk-bar" style="width:0%"></div></div>
+        <div class="row sb mb1">
+          <span class="row gap2 bold" style="font-size:13px">
+            <svg class="ic" width="16" height="16" style="color:var(--c-green)"><use href="#i-check-sq"/></svg> Hábitos
+          </span>
+          <span class="muted mono" style="font-size:12px" id="h-prog-hab-lbl">0/0</span>
+        </div>
+        <div class="pbar ph8"><div class="pf pf-green" id="h-prog-hab-bar" style="width:0%"></div></div>
+      </div>
+
+      <!-- Hábitos do dia -->
+      <div class="card cp">
+        <div class="sec">Hábitos de hoje</div>
+        <div id="h-hab-list"></div>
+      </div>
+    </div>
+
+    <!-- ══ CAMINHADAS ═════════════════════════════════════════════ -->
+    <div class="page" id="pg-walk">
+      <!-- Hero -->
+      <div class="walk-hero">
+        <div style="font-size:11px;color:#475569;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px" class="row gap2">
+          <svg class="ic" width="14" height="14" stroke="#475569"><use href="#i-walk"/></svg> total hoje
+        </div>
+        <div class="wh-today" id="w-km-today">0,00</div>
+        <div style="font-size:12px;color:#64748B;margin-top:4px" class="row gap2">
+          <svg class="ic" width="13" height="13" stroke="#64748B"><use href="#i-target"/></svg>
+          <span id="w-meta-lbl">Meta: —</span>
+        </div>
+        <div style="margin-top:14px">
+          <div class="pbar ph10"><div class="pf pf-orange" id="w-prog" style="width:0%"></div></div>
+          <div class="row sb" style="margin-top:5px">
+            <span style="font-size:11px;color:#475569">0</span>
+            <span style="font-size:11px;color:var(--c-accent);font-weight:700" id="w-prog-pct">0%</span>
+            <span style="font-size:11px;color:#475569" id="w-prog-max">—</span>
+          </div>
+        </div>
+        <div class="wh-metrics">
+          <div>
+            <svg class="ic" width="18" height="18" stroke="#475569"><use href="#i-ruler"/></svg>
+            <div class="wh-mv" id="w-km-week">0</div><div class="wh-ml">km semana</div>
+          </div>
+          <div>
+            <svg class="ic" width="18" height="18" stroke="#475569"><use href="#i-timer"/></svg>
+            <div class="wh-mv" id="w-min-week">0</div><div class="wh-ml">min semana</div>
+          </div>
+          <div>
+            <svg class="ic" width="18" height="18" stroke="#475569"><use href="#i-activity"/></svg>
+            <div class="wh-mv" id="w-count-week">0</div><div class="wh-ml">caminhadas</div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-primary mb2" onclick="openModal('m-walk')">
+        <svg class="ic" width="20" height="20"><use href="#i-plus"/></svg> Registrar Caminhada
+      </button>
+
+      <div class="card cp">
+        <div class="sec">Histórico</div>
+        <div id="w-history"></div>
+      </div>
+    </div>
+
+    <!-- ══ HÁBITOS ════════════════════════════════════════════════ -->
+    <div class="page" id="pg-habits">
+      <div class="row sb mb3">
+        <div>
+          <div style="font-size:21px;font-weight:800">Hábitos</div>
+          <div class="muted" style="font-size:13px;margin-top:2px" id="hab-sub">Carregando...</div>
+        </div>
+      </div>
+      <div class="card cp mb2">
+        <div class="row sb mb2">
+          <span class="bold" style="font-size:14px">Progresso do dia</span>
+          <span class="accent mono xbold" style="font-size:22px" id="hab-pct">0%</span>
+        </div>
+        <div class="pbar ph10"><div class="pf pf-orange" id="hab-pbar" style="width:0%"></div></div>
+      </div>
+      <div class="card cp">
+        <div class="sec">Hoje</div>
+        <div id="hab-list"></div>
+      </div>
+    </div>
+
+    <!-- ══ METAS ══════════════════════════════════════════════════ -->
+    <div class="page" id="pg-goals">
+      <div style="font-size:21px;font-weight:800;margin-bottom:2px">Metas</div>
+      <div class="muted mb3" style="font-size:13px" id="g-period">Semana atual</div>
+
+      <div class="card cp mb2">
+        <div class="sec">Metas semanais</div>
+        <div id="g-list"></div>
+      </div>
+
+      <div class="card cp">
+        <div class="sec">Resumo da semana</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="achv-card">
+            <svg class="ic" width="22" height="22" style="color:var(--c-accent);margin:0 auto 6px"><use href="#i-walk"/></svg>
+            <div class="achv-v" id="s-km">0</div><div class="achv-l">km esta semana</div>
+          </div>
+          <div class="achv-card">
+            <svg class="ic" width="22" height="22" style="color:var(--c-blue);margin:0 auto 6px"><use href="#i-activity"/></svg>
+            <div class="achv-v" id="s-walks">0</div><div class="achv-l">caminhadas</div>
+          </div>
+          <div class="achv-card">
+            <svg class="ic" width="22" height="22" style="color:var(--c-green);margin:0 auto 6px"><use href="#i-check-sq"/></svg>
+            <div class="achv-v" id="s-hab">0%</div><div class="achv-l">hábitos feitos</div>
+          </div>
+          <div class="achv-card">
+            <svg class="ic" width="22" height="22" fill="var(--c-accent)" stroke="none" style="margin:0 auto 6px"><use href="#i-flame"/></svg>
+            <div class="achv-v" id="s-streak">0</div><div class="achv-l">dias seguidos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ PERFIL ═════════════════════════════════════════════════ -->
+    <div class="page" id="pg-profile">
+      <div class="card cp mb2">
+        <div class="pf-avatar" id="pf-av">D</div>
+        <div class="pf-name" id="pf-name">—</div>
+        <div class="pf-email" id="pf-email">—</div>
+
+        <div class="menu-row" onclick="openEditPerfil()">
+          <div class="menu-ic" style="background:#FFF7ED;color:var(--c-accent)"><svg class="ic" width="20" height="20"><use href="#i-edit"/></svg></div>
+          <span class="menu-lbl">Editar perfil</span>
+          <svg class="ic menu-arr" width="18" height="18"><use href="#i-arr-r"/></svg>
+        </div>
+        <div class="menu-row" onclick="openModal('m-body')">
+          <div class="menu-ic" style="background:var(--c-blue-lt);color:var(--c-blue)"><svg class="ic" width="20" height="20"><use href="#i-scale"/></svg></div>
+          <span class="menu-lbl">Registrar medidas</span>
+          <svg class="ic menu-arr" width="18" height="18"><use href="#i-arr-r"/></svg>
+        </div>
+        <div class="menu-row" onclick="openBodyHistory()">
+          <div class="menu-ic" style="background:var(--c-green-lt);color:var(--c-green)"><svg class="ic" width="20" height="20"><use href="#i-activity"/></svg></div>
+          <span class="menu-lbl">Evolução física</span>
+          <svg class="ic menu-arr" width="18" height="18"><use href="#i-arr-r"/></svg>
+        </div>
+        <div class="menu-row" onclick="openModal('m-goal')">
+          <div class="menu-ic" style="background:var(--c-blue-lt);color:var(--c-blue)"><svg class="ic" width="20" height="20"><use href="#i-target"/></svg></div>
+          <span class="menu-lbl">Criar meta</span>
+          <svg class="ic menu-arr" width="18" height="18"><use href="#i-arr-r"/></svg>
+        </div>
+        <div class="menu-row" onclick="toggleTheme()">
+          <div class="menu-ic" id="theme-ic" style="background:#FFFBEB;color:var(--c-amber)"><svg class="ic" width="20" height="20" id="theme-svg"><use href="#i-sun"/></svg></div>
+          <span class="menu-lbl" id="theme-lbl">Tema claro</span>
+          <svg class="ic menu-arr" width="18" height="18"><use href="#i-arr-r"/></svg>
+        </div>
+        <div class="menu-row" style="border-bottom:none" onclick="doLogout()">
+          <div class="menu-ic" style="background:var(--c-red-lt);color:var(--c-red)"><svg class="ic" width="20" height="20"><use href="#i-logout"/></svg></div>
+          <span class="menu-lbl" style="color:var(--c-red)">Sair da conta</span>
+          <svg class="ic menu-arr" width="18" height="18"><use href="#i-arr-r"/></svg>
+        </div>
+      </div>
+
+      <div class="card cp">
+        <div class="sec">Conquistas</div>
+        <div class="achv-grid">
+          <div class="achv-card">
+            <svg class="ic" width="22" height="22" style="color:var(--c-accent);margin:0 auto 6px"><use href="#i-walk"/></svg>
+            <div class="achv-v" id="a-walks">0</div><div class="achv-l">caminhadas</div>
+          </div>
+          <div class="achv-card">
+            <svg class="ic" width="22" height="22" style="color:var(--c-blue);margin:0 auto 6px"><use href="#i-ruler"/></svg>
+            <div class="achv-v" id="a-km">0</div><div class="achv-l">km totais</div>
+          </div>
+          <div class="achv-card">
+            <svg class="ic" width="22" height="22" fill="var(--c-accent)" stroke="none" style="margin:0 auto 6px"><use href="#i-flame"/></svg>
+            <div class="achv-v" id="a-streak">0</div><div class="achv-l">dias seguidos</div>
+          </div>
+          <div class="achv-card">
+            <svg class="ic" width="22" height="22" style="color:var(--c-green);margin:0 auto 6px"><use href="#i-trophy"/></svg>
+            <div class="achv-v" id="a-hab-rate">0%</div><div class="achv-l">taxa hábitos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /main -->
+
+  <!-- FAB -->
+  <button id="fab" onclick="fabAct()">
+    <svg class="ic" width="24" height="24"><use href="#i-plus"/></svg>
   </button>
-</div>
 
-<!-- ═══ MAIN ══════════════════════════════════════════════════════════════ -->
-<div id="main">
-
-  <!-- ── HOME ──────────────────────────────────────────────────────── -->
-  <div class="page active" id="page-home">
-    <div style="margin-bottom:18px;">
-      <div class="page-title">Olá, David 👋</div>
-      <div class="page-sub" id="date-lbl">—</div>
-    </div>
-
-    <!-- Streak -->
-    <div class="streak-banner">
-      <div>
-        <div class="streak-num">7</div>
-        <div class="streak-lbl">dias seguidos</div>
-        <div class="streak-sub">Continue assim! Você está indo bem.</div>
-      </div>
-      <svg class="ic ic-48" style="color:#F97316;opacity:.9" fill="currentColor" stroke="none"><use href="#ic-flame"/></svg>
-    </div>
-
-    <!-- Stats -->
-    <div class="stat-grid">
-      <div class="stat-card">
-        <div class="stat-ic-wrap"><svg class="ic ic-22" style="color:var(--accent)" fill="none" stroke="currentColor"><use href="#ic-walk"/></svg></div>
-        <div class="stat-val">6.240</div>
-        <div class="stat-lbl">passos hoje</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-ic-wrap"><svg class="ic ic-22" style="color:var(--success)" fill="none" stroke="currentColor"><use href="#ic-habits"/></svg></div>
-        <div class="stat-val">4/6</div>
-        <div class="stat-lbl">hábitos feitos</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-ic-wrap"><svg class="ic ic-22" style="color:#3B82F6" fill="none" stroke="currentColor"><use href="#ic-target"/></svg></div>
-        <div class="stat-val">62%</div>
-        <div class="stat-lbl">meta semanal</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-ic-wrap"><svg class="ic ic-22" style="color:#0EA5E9" fill="none" stroke="currentColor"><use href="#ic-drop"/></svg></div>
-        <div class="stat-val">1,8L</div>
-        <div class="stat-lbl">água ingerida</div>
-      </div>
-    </div>
-
-    <!-- Progresso -->
-    <div class="card card-p" style="margin-bottom:14px;">
-      <div class="sec">Progresso de hoje</div>
-      <div class="row-between" style="margin-bottom:6px;">
-        <span style="font-size:14px;font-weight:600;" class="gap-row">
-          <svg class="ic ic-18" style="color:var(--accent)" fill="none" stroke="currentColor"><use href="#ic-walk"/></svg> Passos
-        </span>
-        <span class="txt-muted txt-mono" style="font-size:12px;">6.240 / 10.000</span>
-      </div>
-      <div class="prog-bg" style="margin-bottom:14px;"><div class="prog-fill prog-orange" style="width:62%"></div></div>
-      <div class="row-between" style="margin-bottom:6px;">
-        <span style="font-size:14px;font-weight:600;" class="gap-row">
-          <svg class="ic ic-18" style="color:#0EA5E9" fill="none" stroke="currentColor"><use href="#ic-drop"/></svg> Água
-        </span>
-        <span class="txt-muted txt-mono" style="font-size:12px;">1,8L / 3L</span>
-      </div>
-      <div class="prog-bg"><div class="prog-fill prog-blue" style="width:60%"></div></div>
-    </div>
-
-    <!-- Hábitos rápidos -->
-    <div class="card card-p">
-      <div class="sec">Hábitos de hoje</div>
-      <div class="habit-item">
-        <div class="habit-ic-wrap" style="background:#FFF7ED;color:var(--accent)">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-run"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="habit-name">Caminhar 30 min</div>
-          <div class="habit-streak">
-            <svg class="ic ic-12" style="color:var(--accent)" fill="currentColor" stroke="none"><use href="#ic-flame"/></svg> 7 dias seguidos
-          </div>
-        </div>
-        <div class="chk done" onclick="toggleCheck(this)">
-          <svg class="ic ic-14" fill="none" stroke="currentColor"><use href="#ic-check"/></svg>
-        </div>
-      </div>
-      <div class="habit-item">
-        <div class="habit-ic-wrap" style="background:#EFF6FF;color:#3B82F6">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-drop"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="habit-name">Beber 3L de água</div>
-          <div class="habit-streak">
-            <svg class="ic ic-12" style="color:var(--accent)" fill="currentColor" stroke="none"><use href="#ic-flame"/></svg> 5 dias seguidos
-          </div>
-        </div>
-        <div class="chk done" onclick="toggleCheck(this)">
-          <svg class="ic ic-14" fill="none" stroke="currentColor"><use href="#ic-check"/></svg>
-        </div>
-      </div>
-      <div class="habit-item">
-        <div class="habit-ic-wrap" style="background:#F0FDF4;color:var(--success)">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-salad"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="habit-name">Comer frutas</div>
-          <div class="habit-streak"><svg class="ic ic-12" style="color:var(--accent)" fill="currentColor" stroke="none"><use href="#ic-flame"/></svg> 4 dias</div>
-        </div>
-        <div class="chk done" onclick="toggleCheck(this)">
-          <svg class="ic ic-14" fill="none" stroke="currentColor"><use href="#ic-check"/></svg>
-        </div>
-      </div>
-      <div class="habit-item" style="border-bottom:none">
-        <div class="habit-ic-wrap" style="background:#F8FAFC;color:var(--muted)">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-phone-off"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="habit-name">Sem celular 1h antes</div>
-          <div class="habit-streak">2 dias</div>
-        </div>
-        <div class="chk" onclick="toggleCheck(this)">
-          <svg class="ic ic-14" fill="none" stroke="currentColor"><use href="#ic-check"/></svg>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── CAMINHADAS ────────────────────────────────────────────────── -->
-  <div class="page" id="page-walk">
-    <!-- Hero card -->
-    <div class="walk-hero">
-      <div style="font-size:12px;color:#64748B;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:6px;">
-        <svg class="ic ic-14" style="color:#475569" fill="none" stroke="currentColor"><use href="#ic-walk"/></svg> Passos hoje
-      </div>
-      <div class="walk-steps-val">6.240</div>
-      <div class="walk-goal-lbl" style="display:flex;align-items:center;gap:5px;">
-        <svg class="ic ic-14" fill="none" stroke="currentColor"><use href="#ic-target"/></svg>
-        Meta: 10.000 passos · 4,37 km
-      </div>
-      <div style="margin-top:16px;">
-        <div class="prog-bg" style="height:10px;">
-          <div class="prog-fill prog-orange" style="width:62%"></div>
-        </div>
-        <div class="row-between" style="margin-top:6px;">
-          <span style="font-size:11px;color:#64748B;">0</span>
-          <span style="font-size:11px;color:var(--accent);font-weight:700;">62%</span>
-          <span style="font-size:11px;color:#64748B;">10.000</span>
-        </div>
-      </div>
-      <div class="walk-metrics">
-        <div>
-          <div class="walk-metric-ic"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-ruler"/></svg></div>
-          <div class="walk-metric-val">4,37</div>
-          <div class="walk-metric-lbl">km</div>
-        </div>
-        <div>
-          <div class="walk-metric-ic"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-kcal"/></svg></div>
-          <div class="walk-metric-val">312</div>
-          <div class="walk-metric-lbl">kcal</div>
-        </div>
-        <div>
-          <div class="walk-metric-ic"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-timer"/></svg></div>
-          <div class="walk-metric-val">32'</div>
-          <div class="walk-metric-lbl">tempo</div>
-        </div>
-      </div>
-    </div>
-
-    <button class="btn-primary" onclick="openModal('modal-walk')" style="margin-bottom:16px;">
-      <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-plus"/></svg>
-      Registrar Caminhada
+  <!-- NAVBAR -->
+  <nav id="navbar">
+    <button class="nb on" data-p="home" onclick="nav('home',this)">
+      <svg class="ic" width="22" height="22"><use href="#i-home"/></svg><span>Início</span>
     </button>
+    <button class="nb" data-p="walk" onclick="nav('walk',this)">
+      <svg class="ic" width="22" height="22"><use href="#i-walk"/></svg><span>Caminhadas</span>
+    </button>
+    <button class="nb" data-p="habits" onclick="nav('habits',this)">
+      <svg class="ic" width="22" height="22"><use href="#i-check-sq"/></svg><span>Hábitos</span>
+    </button>
+    <button class="nb" data-p="goals" onclick="nav('goals',this)">
+      <svg class="ic" width="22" height="22"><use href="#i-target"/></svg><span>Metas</span>
+    </button>
+    <button class="nb" data-p="profile" onclick="nav('profile',this)">
+      <svg class="ic" width="22" height="22"><use href="#i-user"/></svg><span>Perfil</span>
+    </button>
+  </nav>
+</div><!-- /app -->
 
-    <!-- Histórico -->
-    <div class="card card-p">
-      <div class="sec">Histórico recente</div>
-      <div class="walk-row">
-        <div class="gap-row">
-          <div style="width:36px;height:36px;border-radius:10px;background:#FFF7ED;display:flex;align-items:center;justify-content:center;color:var(--accent);">
-            <svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-run"/></svg>
-          </div>
-          <div>
-            <div class="walk-row-dist">4,37 km</div>
-            <div class="walk-row-date">Hoje · 32 min · 312 kcal</div>
-          </div>
-        </div>
-        <span class="badge badge-green">✓ Meta</span>
-      </div>
-      <div class="walk-row">
-        <div class="gap-row">
-          <div style="width:36px;height:36px;border-radius:10px;background:#FFF7ED;display:flex;align-items:center;justify-content:center;color:var(--accent);">
-            <svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-run"/></svg>
-          </div>
-          <div>
-            <div class="walk-row-dist">5,12 km</div>
-            <div class="walk-row-date">Ontem · 41 min · 368 kcal</div>
-          </div>
-        </div>
-        <span class="badge badge-green">✓ Meta</span>
-      </div>
-      <div class="walk-row">
-        <div class="gap-row">
-          <div style="width:36px;height:36px;border-radius:10px;background:#F8FAFC;display:flex;align-items:center;justify-content:center;color:var(--muted);">
-            <svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-run"/></svg>
-          </div>
-          <div>
-            <div class="walk-row-dist">3,20 km</div>
-            <div class="walk-row-date">Sex · 28 min · 241 kcal</div>
-          </div>
-        </div>
-        <span class="badge badge-yellow">Parcial</span>
-      </div>
-      <div class="walk-row" style="border-bottom:none">
-        <div class="gap-row">
-          <div style="width:36px;height:36px;border-radius:10px;background:#FFF7ED;display:flex;align-items:center;justify-content:center;color:var(--accent);">
-            <svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-run"/></svg>
-          </div>
-          <div>
-            <div class="walk-row-dist">6,80 km</div>
-            <div class="walk-row-date">Qui · 55 min · 489 kcal</div>
-          </div>
-        </div>
-        <span class="badge badge-green">✓ Meta</span>
-      </div>
-    </div>
-  </div>
+<!-- ══ MODAIS ═════════════════════════════════════════════════════ -->
 
-  <!-- ── HÁBITOS ───────────────────────────────────────────────────── -->
-  <div class="page" id="page-habits">
-    <div class="row-between" style="margin-bottom:18px;">
-      <div>
-        <div class="page-title">Hábitos</div>
-        <div class="page-sub" style="margin-bottom:0">4 de 6 concluídos hoje</div>
-      </div>
-    </div>
-
-    <div class="card card-p" style="margin-bottom:14px;">
-      <div class="row-between" style="margin-bottom:10px;">
-        <span style="font-size:14px;font-weight:700;">Progresso do dia</span>
-        <span class="txt-accent txt-mono" style="font-size:22px;font-weight:800;">67%</span>
-      </div>
-      <div class="prog-bg"><div class="prog-fill prog-orange" style="width:67%"></div></div>
-    </div>
-
-    <div class="card card-p">
-      <div class="sec">Hoje</div>
-
-      <div class="habit-item">
-        <div class="habit-ic-wrap" style="background:#FFF7ED;color:var(--accent)">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-run"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="habit-name">Caminhar 30 min</div>
-          <div class="habit-streak"><svg class="ic ic-12" style="color:var(--accent)" fill="currentColor" stroke="none"><use href="#ic-flame"/></svg> 7 dias</div>
-        </div>
-        <div class="chk done" onclick="toggleCheck(this)"><svg class="ic ic-14" fill="none" stroke="currentColor"><use href="#ic-check"/></svg></div>
-      </div>
-
-      <div class="habit-item">
-        <div class="habit-ic-wrap" style="background:#EFF6FF;color:#3B82F6">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-drop"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="habit-name">Beber 3L de água</div>
-          <div class="habit-streak"><svg class="ic ic-12" style="color:var(--accent)" fill="currentColor" stroke="none"><use href="#ic-flame"/></svg> 5 dias</div>
-        </div>
-        <div class="chk done" onclick="toggleCheck(this)"><svg class="ic ic-14" fill="none" stroke="currentColor"><use href="#ic-check"/></svg></div>
-      </div>
-
-      <div class="habit-item">
-        <div class="habit-ic-wrap" style="background:#F0FDF4;color:var(--success)">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-salad"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="habit-name">Comer frutas</div>
-          <div class="habit-streak"><svg class="ic ic-12" style="color:var(--accent)" fill="currentColor" stroke="none"><use href="#ic-flame"/></svg> 4 dias</div>
-        </div>
-        <div class="chk done" onclick="toggleCheck(this)"><svg class="ic ic-14" fill="none" stroke="currentColor"><use href="#ic-check"/></svg></div>
-      </div>
-
-      <div class="habit-item">
-        <div class="habit-ic-wrap" style="background:#FEF3C7;color:#D97706">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-moon"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="habit-name">Dormir 8 horas</div>
-          <div class="habit-streak"><svg class="ic ic-12" style="color:var(--accent)" fill="currentColor" stroke="none"><use href="#ic-flame"/></svg> 3 dias</div>
-        </div>
-        <div class="chk done" onclick="toggleCheck(this)"><svg class="ic ic-14" fill="none" stroke="currentColor"><use href="#ic-check"/></svg></div>
-      </div>
-
-      <div class="habit-item">
-        <div class="habit-ic-wrap">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-phone-off"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="habit-name">Sem tela antes de dormir</div>
-          <div class="habit-streak">2 dias</div>
-        </div>
-        <div class="chk" onclick="toggleCheck(this)"><svg class="ic ic-14" fill="none" stroke="currentColor"><use href="#ic-check"/></svg></div>
-      </div>
-
-      <div class="habit-item" style="border-bottom:none">
-        <div class="habit-ic-wrap" style="background:#F5F3FF;color:#7C3AED">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-brain"/></svg>
-        </div>
-        <div style="flex:1">
-          <div class="habit-name">Meditação 10 min</div>
-          <div class="habit-streak">1 dia</div>
-        </div>
-        <div class="chk" onclick="toggleCheck(this)"><svg class="ic ic-14" fill="none" stroke="currentColor"><use href="#ic-check"/></svg></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── METAS ─────────────────────────────────────────────────────── -->
-  <div class="page" id="page-goals">
-    <div class="page-title">Metas</div>
-    <div class="page-sub">Semana atual · 14–20 abr</div>
-
-    <div class="card card-p" style="margin-bottom:14px;">
-      <div class="sec">Metas semanais</div>
-
-      <div class="meta-item">
-        <div class="meta-head">
-          <span class="meta-name">
-            <svg class="ic ic-18" style="color:var(--accent)" fill="none" stroke="currentColor"><use href="#ic-walk"/></svg>
-            Passos totais
-          </span>
-          <span class="meta-pct">62%</span>
-        </div>
-        <div class="meta-sub">43.680 / 70.000 passos</div>
-        <div class="prog-bg"><div class="prog-fill prog-orange" style="width:62%"></div></div>
-      </div>
-
-      <div class="meta-item">
-        <div class="meta-head">
-          <span class="meta-name">
-            <svg class="ic ic-18" style="color:#3B82F6" fill="none" stroke="currentColor"><use href="#ic-ruler"/></svg>
-            Distância
-          </span>
-          <span class="meta-pct">74%</span>
-        </div>
-        <div class="meta-sub">22,2 / 30 km</div>
-        <div class="prog-bg"><div class="prog-fill prog-orange" style="width:74%"></div></div>
-      </div>
-
-      <div class="meta-item">
-        <div class="meta-head">
-          <span class="meta-name">
-            <svg class="ic ic-18" style="color:var(--success)" fill="none" stroke="currentColor"><use href="#ic-habits"/></svg>
-            Hábitos concluídos
-          </span>
-          <span class="meta-pct">83%</span>
-        </div>
-        <div class="meta-sub">25 / 30 hábitos</div>
-        <div class="prog-bg"><div class="prog-fill prog-green" style="width:83%"></div></div>
-      </div>
-
-      <div class="meta-item" style="margin-bottom:0">
-        <div class="meta-head">
-          <span class="meta-name">
-            <svg class="ic ic-18" style="color:var(--accent)" fill="currentColor" stroke="none"><use href="#ic-flame"/></svg>
-            Sequência
-          </span>
-          <span class="meta-pct">100%</span>
-        </div>
-        <div class="meta-sub">7 dias consecutivos — meta batida!</div>
-        <div class="prog-bg"><div class="prog-fill prog-gold" style="width:100%"></div></div>
-      </div>
-    </div>
-
-    <div class="card card-p">
-      <div class="sec">Metas do mês · Abril</div>
-      <div class="meta-item">
-        <div class="meta-head">
-          <span class="meta-name">
-            <svg class="ic ic-18" style="color:var(--accent)" fill="none" stroke="currentColor"><use href="#ic-trophy"/></svg>
-            Caminhadas
-          </span>
-          <span class="meta-pct">60%</span>
-        </div>
-        <div class="meta-sub">18 / 30 realizadas</div>
-        <div class="prog-bg"><div class="prog-fill prog-orange" style="width:60%"></div></div>
-      </div>
-      <div class="meta-item" style="margin-bottom:0">
-        <div class="meta-head">
-          <span class="meta-name">
-            <svg class="ic ic-18" style="color:#7C3AED" fill="none" stroke="currentColor"><use href="#ic-ruler"/></svg>
-            Distância total
-          </span>
-          <span class="meta-pct">55%</span>
-        </div>
-        <div class="meta-sub">55 / 100 km</div>
-        <div class="prog-bg"><div class="prog-fill prog-orange" style="width:55%"></div></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── PERFIL ────────────────────────────────────────────────────── -->
-  <div class="page" id="page-profile">
-    <div class="card card-p" style="margin-bottom:14px;">
-      <div class="perfil-avatar">
-        <span id="perfil-init" style="font-size:32px;font-weight:800;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;">D</span>
-      </div>
-      <div class="perfil-name" id="perfil-name">David</div>
-      <div class="perfil-email" id="perfil-email">david@email.com</div>
-
-      <div class="menu-item" onclick="abrirEditarPerfil()">
-        <div class="menu-ic-wrap" style="background:#FFF7ED;color:var(--accent)">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-profile-edit"/></svg>
-        </div>
-        <div class="menu-lbl">Editar perfil</div>
-        <div class="menu-arrow"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-chevron-r"/></svg></div>
-      </div>
-      <div class="menu-item" onclick="irParaMetas()">
-        <div class="menu-ic-wrap" style="background:#EFF6FF;color:#3B82F6">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-target"/></svg>
-        </div>
-        <div class="menu-lbl">Configurar metas</div>
-        <div class="menu-arrow"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-chevron-r"/></svg></div>
-      </div>
-      <div class="menu-item" onclick="toggleNotificacoes(this)">
-        <div class="menu-ic-wrap" style="background:#F0FDF4;color:var(--success)">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-bell"/></svg>
-        </div>
-        <div class="menu-lbl">Notificações</div>
-        <div class="menu-arrow">
-          <div id="notif-toggle" style="width:42px;height:24px;border-radius:99px;background:#E2E8F0;position:relative;transition:background .2s;cursor:pointer;">
-            <div id="notif-thumb" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);"></div>
-          </div>
-        </div>
-      </div>
-      <div class="menu-item" onclick="toggleTema(this)">
-        <div class="menu-ic-wrap" id="tema-ic-wrap" style="background:#FEF9C3;color:#D97706">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-sun"/></svg>
-        </div>
-        <div class="menu-lbl" id="tema-lbl">Tema claro / escuro</div>
-        <div class="menu-arrow">
-          <div id="tema-badge" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#FEF9C3;color:#D97706;">CLARO</div>
-        </div>
-      </div>
-      <div class="menu-item" onclick="toast('Configurações avançadas em breve! ⚙️')">
-        <div class="menu-ic-wrap" style="background:#F1F5F9;color:var(--muted)">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-settings"/></svg>
-        </div>
-        <div class="menu-lbl">Configurações</div>
-        <div class="menu-arrow"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-chevron-r"/></svg></div>
-      </div>
-      <div class="menu-item" style="border-bottom:none" onclick="doLogout()">
-        <div class="menu-ic-wrap" style="background:#FEF2F2;color:var(--error)">
-          <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-logout"/></svg>
-        </div>
-        <div class="menu-lbl" style="color:var(--error);">Sair da conta</div>
-        <div class="menu-arrow"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-chevron-r"/></svg></div>
-      </div>
-    </div>
-
-    <div class="card card-p">
-      <div class="sec">Suas conquistas</div>
-      <div class="achv-grid">
-        <div class="achv-card">
-          <svg class="ic ic-24" style="color:var(--accent);margin-bottom:6px;" fill="none" stroke="currentColor"><use href="#ic-run"/></svg>
-          <div class="achv-val">18</div>
-          <div class="achv-lbl">caminhadas</div>
-        </div>
-        <div class="achv-card">
-          <svg class="ic ic-24" style="color:#3B82F6;margin-bottom:6px;" fill="none" stroke="currentColor"><use href="#ic-ruler"/></svg>
-          <div class="achv-val">55</div>
-          <div class="achv-lbl">km percorridos</div>
-        </div>
-        <div class="achv-card">
-          <svg class="ic ic-24" style="color:var(--accent);margin-bottom:6px;" fill="currentColor" stroke="none"><use href="#ic-flame"/></svg>
-          <div class="achv-val">7</div>
-          <div class="achv-lbl">dias seguidos</div>
-        </div>
-        <div class="achv-card">
-          <svg class="ic ic-24" style="color:var(--success);margin-bottom:6px;" fill="none" stroke="currentColor"><use href="#ic-trophy"/></svg>
-          <div class="achv-val">83%</div>
-          <div class="achv-lbl">taxa hábitos</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-</div><!-- /main -->
-
-<!-- ═══ FAB ═══════════════════════════════════════════════════════════════ -->
-<button id="fab" onclick="fabAction()">
-  <svg class="ic ic-24" fill="none" stroke="currentColor"><use href="#ic-plus"/></svg>
-</button>
-
-<!-- ═══ BOTTOM NAVBAR ══════════════════════════════════════════════════════ -->
-<nav id="navbar">
-  <button class="tab-btn active" onclick="goTo('home',this)">
-    <svg class="ic ic-22" fill="none" stroke="currentColor"><use href="#ic-home"/></svg>
-    <span class="tab-lbl">Início</span>
-  </button>
-  <button class="tab-btn" onclick="goTo('walk',this)">
-    <svg class="ic ic-22" fill="none" stroke="currentColor"><use href="#ic-walk"/></svg>
-    <span class="tab-lbl">Caminhadas</span>
-  </button>
-  <button class="tab-btn" onclick="goTo('habits',this)">
-    <svg class="ic ic-22" fill="none" stroke="currentColor"><use href="#ic-habits"/></svg>
-    <span class="tab-lbl">Hábitos</span>
-  </button>
-  <button class="tab-btn" onclick="goTo('goals',this)">
-    <svg class="ic ic-22" fill="none" stroke="currentColor"><use href="#ic-target"/></svg>
-    <span class="tab-lbl">Metas</span>
-  </button>
-  <button class="tab-btn" onclick="goTo('profile',this)">
-    <svg class="ic ic-22" fill="none" stroke="currentColor"><use href="#ic-user"/></svg>
-    <span class="tab-lbl">Perfil</span>
-  </button>
-</nav>
-
-<!-- ═══ MODAL: Registrar Caminhada ════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-walk" onclick="closeModal(event,'modal-walk')">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Registrar Caminhada</div>
-    <div class="f-lbl">Distância (km)</div>
-    <input class="f-input" type="number" step="0.1" inputmode="decimal" placeholder="Ex: 4.5"/>
-    <div class="f-lbl">Duração (minutos)</div>
-    <input class="f-input" type="number" inputmode="numeric" placeholder="Ex: 35"/>
-    <div class="f-lbl">Data</div>
-    <input class="f-input" type="date" id="walk-date"/>
-    <div class="f-lbl">Observações</div>
-    <input class="f-input" type="text" placeholder="Ex: Parque municipal..."/>
-    <button class="btn-primary" onclick="saveWalk()">
-      <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-check"/></svg>
-      Salvar Caminhada
+<!-- Modal: Registrar Caminhada -->
+<div class="overlay" id="m-walk" onclick="closeOverlay(event,'m-walk')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Registrar Caminhada</div>
+    <div class="field-lbl">Distância (km) *</div>
+    <input class="field-inp" id="w-dist" type="number" step="0.01" inputmode="decimal" placeholder="Ex: 4.37"/>
+    <div class="field-lbl">Duração (minutos)</div>
+    <input class="field-inp" id="w-dur" type="number" inputmode="numeric" placeholder="Ex: 35"/>
+    <div class="field-lbl">Passos</div>
+    <input class="field-inp" id="w-steps" type="number" inputmode="numeric" placeholder="Ex: 6240"/>
+    <div class="field-lbl">Data</div>
+    <input class="field-inp" id="w-date" type="date"/>
+    <div class="field-lbl">Observações</div>
+    <input class="field-inp" id="w-notes" placeholder="Opcional..."/>
+    <button class="btn btn-primary" id="btn-sw" onclick="saveWalk()">
+      <svg class="ic" width="20" height="20"><use href="#i-check"/></svg> Salvar caminhada
     </button>
   </div>
 </div>
 
-<!-- ═══ MODAL: Novo Hábito ════════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-habit" onclick="closeModal(event,'modal-habit')">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Novo Hábito</div>
-    <div class="f-lbl">Nome do hábito</div>
-    <input class="f-input" type="text" placeholder="Ex: Caminhar 30 min"/>
-    <div class="f-lbl">Frequência</div>
-    <select class="f-input">
-      <option>Todos os dias</option>
-      <option>Dias de semana</option>
-      <option>Fins de semana</option>
+<!-- Modal: Novo Hábito -->
+<div class="overlay" id="m-habit" onclick="closeOverlay(event,'m-habit')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Novo Hábito</div>
+    <div class="field-lbl">Nome *</div>
+    <input class="field-inp" id="hab-name" placeholder="Ex: Caminhar 30 minutos"/>
+    <div class="field-lbl">Frequência</div>
+    <select class="field-inp" id="hab-freq">
+      <option value="daily">Todos os dias</option>
+      <option value="weekdays">Dias de semana (seg–sex)</option>
+      <option value="weekends">Fins de semana</option>
     </select>
-    <button class="btn-primary" onclick="saveHabit()">
-      <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-check"/></svg>
-      Criar Hábito
+    <button class="btn btn-primary" id="btn-shab" onclick="saveHabit()">
+      <svg class="ic" width="20" height="20"><use href="#i-check"/></svg> Criar hábito
     </button>
+  </div>
+</div>
+
+<!-- Modal: Nova Meta -->
+<div class="overlay" id="m-goal" onclick="closeOverlay(event,'m-goal')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Nova Meta</div>
+    <div class="field-lbl">Tipo</div>
+    <select class="field-inp" id="g-type" onchange="updGoalLbl()">
+      <option value="distance">Distância (km/semana)</option>
+      <option value="walks_per_week">Caminhadas por semana</option>
+      <option value="habits">Hábitos por semana (total)</option>
+      <option value="streak">Sequência de dias</option>
+    </select>
+    <div class="field-lbl" id="g-val-lbl">Alvo (km)</div>
+    <input class="field-inp" id="g-val" type="number" step="0.1" inputmode="decimal" placeholder="Ex: 30"/>
+    <div class="field-lbl">Período</div>
+    <select class="field-inp" id="g-period">
+      <option value="weekly">Semanal</option>
+      <option value="monthly">Mensal</option>
+      <option value="daily">Diário</option>
+    </select>
+    <button class="btn btn-primary" id="btn-sg" onclick="saveGoal()">
+      <svg class="ic" width="20" height="20"><use href="#i-check"/></svg> Criar meta
+    </button>
+  </div>
+</div>
+
+<!-- Modal: Editar Perfil -->
+<div class="overlay" id="m-perfil" onclick="closeOverlay(event,'m-perfil')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Editar Perfil</div>
+    <div class="field-lbl">Nome</div>
+    <input class="field-inp" id="ep-name" placeholder="Seu nome"/>
+    <div class="field-lbl">E-mail (somente leitura)</div>
+    <input class="field-inp" id="ep-email" disabled/>
+    <button class="btn btn-primary" onclick="savePerfil()">
+      <svg class="ic" width="20" height="20"><use href="#i-check"/></svg> Salvar alterações
+    </button>
+  </div>
+</div>
+
+<!-- Modal: Registrar Medidas -->
+<div class="overlay" id="m-body" onclick="closeOverlay(event,'m-body')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Registrar Medidas</div>
+    <div class="field-lbl">Peso (kg)</div>
+    <input class="field-inp" id="b-wt" type="number" step="0.1" inputmode="decimal" placeholder="Ex: 78.5"/>
+    <div class="field-lbl">Cintura (cm)</div>
+    <input class="field-inp" id="b-wa" type="number" step="0.1" inputmode="decimal" placeholder="Ex: 88.0"/>
+    <div class="field-lbl">Altura (cm)</div>
+    <input class="field-inp" id="b-ht" type="number" step="0.1" inputmode="decimal" placeholder="Ex: 175.0"/>
+    <div class="field-lbl">Meta de peso (kg) — opcional</div>
+    <input class="field-inp" id="b-gw" type="number" step="0.1" inputmode="decimal" placeholder="Ex: 72.0"/>
+    <div class="field-lbl">Observações</div>
+    <input class="field-inp" id="b-no" placeholder="Opcional..."/>
+    <button class="btn btn-primary" onclick="saveBody()">
+      <svg class="ic" width="20" height="20"><use href="#i-check"/></svg> Salvar medidas
+    </button>
+  </div>
+</div>
+
+<!-- Modal: Evolução Física -->
+<div class="overlay" id="m-body-hist" onclick="closeOverlay(event,'m-body-hist')">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">Evolução Física</div>
+    <div id="body-hist-list"></div>
   </div>
 </div>
 
 <script>
-  // ════════════════════════════════════════════════════════
-  // SUPABASE — client (renomeado pra "db" pra não conflitar com o CDN)
-  // ════════════════════════════════════════════════════════
-  const SUPABASE_URL = 'https://seczqnzwhbiclusedcuq.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_QcDM_WkA8ud4ZSLF88lLWw_WOq62P9A';
-  const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+// ═══════════════════════════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════════════════════════
+const SB_URL = 'https://seczqnzwhbiclusedcuq.supabase.co';
+const SB_KEY = 'sb_publishable_QcDM_WkA8ud4ZSLF88lLWw_WOq62P9A';
+const db = window.supabase.createClient(SB_URL, SB_KEY);
 
-  // ════════════════════════════════════════════════════════
-  // CONTROLE DE TELAS — loader → auth → app
-  // ════════════════════════════════════════════════════════
-  const elLoader  = document.getElementById('app-loader');
-  const elAuth    = document.getElementById('auth-screen');
-  const elTopbar  = document.getElementById('topbar');
-  const elMain    = document.getElementById('main');
-  const elNavbar  = document.getElementById('navbar');
-  const elFab     = document.getElementById('fab');
-  const elBanner  = document.getElementById('install-banner');
+let U = null; // currentUser
+let D = { habits:[], logs:[], walks:[], goals:[], body:[] };
 
-  function showApp(session) {
-    elLoader.style.display = 'none';
-    elAuth.style.display   = 'none';
-    elTopbar.style.display = 'flex';
-    elMain.style.display   = 'block';
-    elNavbar.style.display = 'flex';
-    elFab.style.display    = 'flex';
-    if (session?.user) {
-      const u    = session.user;
-      const nome = u.user_metadata?.name || u.email.split('@')[0];
-      document.getElementById('perfil-name').textContent  = nome;
-      document.getElementById('perfil-email').textContent = u.email;
-      document.getElementById('perfil-init').textContent  = nome.charAt(0).toUpperCase();
-    }
+// ═══════════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════════
+const today = () => new Date().toISOString().split('T')[0];
+
+function weekBounds() {
+  const n = new Date(), dow = n.getDay();
+  const mon = new Date(n); mon.setDate(n.getDate() - (dow === 0 ? 6 : dow - 1));
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  return { start: mon.toISOString().split('T')[0], end: sun.toISOString().split('T')[0] };
+}
+
+function fmt(n, dec=2) {
+  if (n == null) return '—';
+  return Number(n).toFixed(dec).replace('.', ',');
+}
+
+function fmtDate(s) {
+  if (!s) return '';
+  const [y,m,d] = s.split('-');
+  const M = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  return `${parseInt(d)} ${M[parseInt(m)-1]}`;
+}
+
+function userName() {
+  return U?.user_metadata?.name || U?.email?.split('@')[0] || 'Usuário';
+}
+
+function calcStreak() {
+  const set = new Set([
+    ...D.walks.map(w => w.date),
+    ...D.logs.filter(l => l.completed).map(l => l.date)
+  ]);
+  let n = 0, d = new Date();
+  while (true) {
+    const s = d.toISOString().split('T')[0];
+    if (set.has(s)) { n++; d.setDate(d.getDate()-1); } else break;
   }
+  return n;
+}
 
-  function showAuth() {
-    elLoader.style.display = 'none';
-    elAuth.style.display   = 'flex';
-    elTopbar.style.display = 'none';
-    elMain.style.display   = 'none';
-    elNavbar.style.display = 'none';
-    elFab.style.display    = 'none';
-  }
+function disableBtn(id, yes) {
+  const b = document.getElementById(id);
+  if (b) b.disabled = yes;
+}
 
-  // Esconde tudo enquanto verifica sessão
-  elTopbar.style.display = 'none';
-  elMain.style.display   = 'none';
-  elNavbar.style.display = 'none';
-  elFab.style.display    = 'none';
+// ═══════════════════════════════════════════════════════════════════
+// AUTH FLOW
+// ═══════════════════════════════════════════════════════════════════
+function showApp(session) {
+  U = session.user;
+  document.getElementById('loader').classList.add('hide');
+  document.getElementById('auth').classList.add('hidden');
+  document.getElementById('app').classList.add('on');
+  document.getElementById('fab').classList.add('on');
+  const init = userName().charAt(0).toUpperCase();
+  document.getElementById('tb-avatar').textContent = init;
+  loadAll();
+}
 
-  // Verifica sessão ao abrir
-  db.auth.getSession().then(({ data }) => {
-    if (data.session) showApp(data.session);
-    else              showAuth();
+function showAuth() {
+  U = null;
+  document.getElementById('loader').classList.add('hide');
+  document.getElementById('auth').classList.remove('hidden');
+  document.getElementById('app').classList.remove('on');
+}
+
+db.auth.getSession().then(({ data }) => {
+  if (data.session) showApp(data.session); else showAuth();
+});
+db.auth.onAuthStateChange((ev, s) => {
+  if (ev === 'SIGNED_IN') showApp(s);
+  if (ev === 'SIGNED_OUT') showAuth();
+});
+
+function switchTab(t) {
+  ['in','up'].forEach(x => {
+    document.getElementById('atab-'+x).classList.toggle('on', x===t);
+    document.getElementById('form-'+x).classList.toggle('on', x===t);
   });
+  document.getElementById('err-in').classList.remove('on');
+  document.getElementById('err-up').classList.remove('on');
+}
 
-  // Escuta mudanças em tempo real
-  db.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN')  showApp(session);
-    if (event === 'SIGNED_OUT') showAuth();
+function setLoading(btnId, loading) {
+  const btn = document.getElementById(btnId);
+  if (!btn) return;
+  btn.disabled = loading;
+  btn.querySelector('.btxt').style.display = loading ? 'none' : '';
+  btn.querySelector('.bspin').style.display = loading ? 'block' : 'none';
+}
+
+function showErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg; el.classList.add('on');
+}
+
+async function doLogin() {
+  const email = document.getElementById('in-email').value.trim();
+  const pass  = document.getElementById('in-pass').value;
+  document.getElementById('err-in').classList.remove('on');
+  if (!email || !pass) { showErr('err-in','Preencha e-mail e senha.'); return; }
+  setLoading('btn-in', true);
+  const { error } = await db.auth.signInWithPassword({ email, password: pass });
+  setLoading('btn-in', false);
+  if (error) showErr('err-in', traduz(error.message));
+}
+
+async function doSignup() {
+  const name  = document.getElementById('up-name').value.trim();
+  const email = document.getElementById('up-email').value.trim();
+  const pass  = document.getElementById('up-pass').value;
+  document.getElementById('err-up').classList.remove('on');
+  if (!name||!email||!pass) { showErr('err-up','Preencha todos os campos.'); return; }
+  if (pass.length < 6)      { showErr('err-up','Senha: mínimo 6 caracteres.'); return; }
+  setLoading('btn-up', true);
+  const { error } = await db.auth.signUp({ email, password: pass, options: { data: { name } } });
+  setLoading('btn-up', false);
+  if (error) showErr('err-up', traduz(error.message));
+  else toast('Conta criada! Entrando...');
+}
+
+async function doLogout() {
+  if (!confirm('Deseja sair da conta?')) return;
+  await db.auth.signOut();
+  toast('Até logo! 👋');
+}
+
+async function doReset() {
+  const email = document.getElementById('in-email').value.trim();
+  if (!email) { showErr('err-in','Digite seu e-mail primeiro.'); return; }
+  const { error } = await db.auth.resetPasswordForEmail(email, {
+    redirectTo: 'https://david-agrodev.github.io/fitday/'
   });
+  if (error) showErr('err-in', traduz(error.message));
+  else toast('E-mail de recuperação enviado!');
+}
 
-  // ════════════════════════════════════════════════════════
-  // AUTH FUNCTIONS
-  // ════════════════════════════════════════════════════════
-  function switchTab(tab) {
-    document.getElementById('form-login').style.display  = tab==='login'  ? 'block' : 'none';
-    document.getElementById('form-signup').style.display = tab==='signup' ? 'block' : 'none';
-    document.getElementById('tab-login').classList.toggle('active',  tab==='login');
-    document.getElementById('tab-signup').classList.toggle('active', tab==='signup');
-    document.getElementById('err-login').classList.remove('show');
-    document.getElementById('err-signup').classList.remove('show');
-  }
+function traduz(m) {
+  if (m.includes('Invalid login credentials')) return 'E-mail ou senha incorretos.';
+  if (m.includes('Email not confirmed'))       return 'Confirme seu e-mail antes de entrar.';
+  if (m.includes('User already registered'))   return 'E-mail já cadastrado.';
+  if (m.includes('Password should be'))        return 'Senha deve ter ao menos 6 caracteres.';
+  if (m.includes('rate limit'))                return 'Muitas tentativas. Aguarde um momento.';
+  return 'Erro: ' + m;
+}
 
-  async function doLogin() {
-    const email = document.getElementById('login-email').value.trim();
-    const pass  = document.getElementById('login-pass').value;
-    const err   = document.getElementById('err-login');
-    const btn   = document.getElementById('btn-login');
-    err.classList.remove('show');
-    if (!email || !pass) { err.textContent='Preencha e-mail e senha.'; err.classList.add('show'); return; }
-    btn.classList.add('loading'); btn.disabled = true;
-    const { error } = await db.auth.signInWithPassword({ email, password: pass });
-    btn.classList.remove('loading'); btn.disabled = false;
-    if (error) { err.textContent = traduzErro(error.message); err.classList.add('show'); }
-  }
+document.getElementById('in-pass').addEventListener('keydown',  e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('up-pass').addEventListener('keydown',  e => { if(e.key==='Enter') doSignup(); });
 
-  async function doSignup() {
-    const name  = document.getElementById('signup-name').value.trim();
-    const email = document.getElementById('signup-email').value.trim();
-    const pass  = document.getElementById('signup-pass').value;
-    const err   = document.getElementById('err-signup');
-    const btn   = document.getElementById('btn-signup');
-    err.classList.remove('show');
-    if (!name||!email||!pass) { err.textContent='Preencha todos os campos.'; err.classList.add('show'); return; }
-    if (pass.length < 6)      { err.textContent='Senha deve ter pelo menos 6 caracteres.'; err.classList.add('show'); return; }
-    btn.classList.add('loading'); btn.disabled = true;
-    const { error } = await db.auth.signUp({ email, password: pass, options:{ data:{ name } } });
-    btn.classList.remove('loading'); btn.disabled = false;
-    if (error) { err.textContent = traduzErro(error.message); err.classList.add('show'); }
-    else toast('Conta criada! Fazendo login...');
-  }
+// ═══════════════════════════════════════════════════════════════════
+// CARREGAR DADOS
+// ═══════════════════════════════════════════════════════════════════
+async function loadAll() {
+  const uid = U.id;
+  const { start, end } = weekBounds();
 
-  async function doLogout() {
-    if (!confirm('Deseja sair da conta?')) return;
-    await db.auth.signOut();
-    toast('Até logo! 👋');
-  }
+  const [hR, lR, wR, gR, bR] = await Promise.all([
+    db.from('habits').select('*').eq('user_id', uid).eq('active', true).order('sort_order'),
+    db.from('habit_logs').select('*').eq('user_id', uid).gte('date', start).lte('date', end),
+    db.from('walks').select('*').eq('user_id', uid).order('date', { ascending:false }).limit(60),
+    db.from('goals').select('*').eq('user_id', uid).eq('active', true),
+    db.from('body_records').select('*').eq('user_id', uid).order('date', { ascending:false }).limit(30),
+  ]);
 
-  async function doReset() {
-    const email = document.getElementById('login-email').value.trim();
-    const err   = document.getElementById('err-login');
-    if (!email) { err.textContent='Digite seu e-mail para recuperar a senha.'; err.classList.add('show'); return; }
-    const { error } = await db.auth.resetPasswordForEmail(email, { redirectTo:'https://david-agrodev.github.io/fitday/' });
-    if (error) { err.textContent = traduzErro(error.message); err.classList.add('show'); }
-    else toast('E-mail de recuperação enviado!');
-  }
+  D.habits = hR.data || [];
+  D.logs   = lR.data || [];
+  D.walks  = wR.data || [];
+  D.goals  = gR.data || [];
+  D.body   = bR.data || [];
 
-  // ════════════════════════════════════════════════════════
-  // FUNÇÕES DO PERFIL
-  // ════════════════════════════════════════════════════════
+  renderHome();
+  renderWalks();
+  renderHabits();
+  renderGoals();
+  renderPerfil();
+}
 
-  // Navega para a aba Metas
-  function irParaMetas() {
-    const btn = document.querySelector('[onclick*="goals"]');
-    goTo('goals', btn);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  // Toggle notificações (visual — integração push em breve)
-  let notifAtivo = false;
-  function toggleNotificacoes() {
-    notifAtivo = !notifAtivo;
-    const tog   = document.getElementById('notif-toggle');
-    const thumb = document.getElementById('notif-thumb');
-    if (notifAtivo) {
-      tog.style.background   = 'var(--success)';
-      thumb.style.left       = '21px';
-      toast('Notificações ativadas! 🔔');
-    } else {
-      tog.style.background   = '#E2E8F0';
-      thumb.style.left       = '3px';
-      toast('Notificações desativadas.');
-    }
-  }
-
-  // Toggle tema claro / escuro
-  let temaEscuro = localStorage.getItem('fitday-tema') === 'dark';
-  function aplicarTema() {
-    if (temaEscuro) {
-      document.body.classList.add('dark');
-      document.getElementById('tema-badge').textContent    = 'ESCURO';
-      document.getElementById('tema-badge').style.background = '#1E293B';
-      document.getElementById('tema-badge').style.color      = '#94A3B8';
-    } else {
-      document.body.classList.remove('dark');
-      document.getElementById('tema-badge').textContent    = 'CLARO';
-      document.getElementById('tema-badge').style.background = '#FEF9C3';
-      document.getElementById('tema-badge').style.color      = '#D97706';
-    }
-  }
-  function toggleTema() {
-    temaEscuro = !temaEscuro;
-    localStorage.setItem('fitday-tema', temaEscuro ? 'dark' : 'light');
-    aplicarTema();
-    toast(temaEscuro ? 'Tema escuro ativado 🌙' : 'Tema claro ativado ☀️');
-  }
-  // Aplica tema salvo ao carregar
-  aplicarTema();
-
-  // Abre modal de editar perfil com dados atuais
-  function abrirEditarPerfil() {
-    db.auth.getSession().then(({ data }) => {
-      if (!data.session) return;
-      const u    = data.session.user;
-      const nome = u.user_metadata?.name || u.email.split('@')[0];
-      document.getElementById('edit-nome').value  = nome;
-      document.getElementById('edit-email').value = u.email;
-    });
-    openModal('modal-editar-perfil');
-  }
-  // Sobrescreve o openModal para o perfil
-  const _openModal = openModal;
-
-  // Salvar nome no Supabase
-  async function salvarPerfil() {
-    const novoNome = document.getElementById('edit-nome').value.trim();
-    if (!novoNome) { toast('Digite um nome válido.'); return; }
-    const { error } = await db.auth.updateUser({ data: { name: novoNome } });
-    if (error) { toast('Erro ao salvar: ' + error.message); return; }
-    // Atualiza também na tabela profiles
-    const { data: { session } } = await db.auth.getSession();
-    if (session) {
-      await db.from('profiles').update({ name: novoNome }).eq('id', session.user.id);
-      document.getElementById('perfil-name').textContent = novoNome;
-      document.getElementById('perfil-init').textContent = novoNome.charAt(0).toUpperCase();
-    }
-    document.getElementById('modal-editar-perfil').classList.remove('open');
-    toast('Perfil atualizado! ✅');
-  }
-
-  function traduzErro(msg) {
-    if (msg.includes('Invalid login credentials')) return 'E-mail ou senha incorretos.';
-    if (msg.includes('Email not confirmed'))       return 'Confirme seu e-mail antes de entrar.';
-    if (msg.includes('User already registered'))   return 'Este e-mail já está cadastrado.';
-    if (msg.includes('Password should be'))        return 'Senha deve ter pelo menos 6 caracteres.';
-    if (msg.includes('rate limit'))                return 'Muitas tentativas. Aguarde alguns minutos.';
-    return 'Erro: ' + msg;
-  }
-
-  // Enter nos campos dispara submit
-  document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('login-pass')?.addEventListener('keydown',  e => { if(e.key==='Enter') doLogin(); });
-    document.getElementById('signup-pass')?.addEventListener('keydown', e => { if(e.key==='Enter') doSignup(); });
-  });
-
-  // ════════════════════════════════════════════════════════
-  // DATA
-  // ════════════════════════════════════════════════════════
-  const DIAS  = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+// ═══════════════════════════════════════════════════════════════════
+// HOME
+// ═══════════════════════════════════════════════════════════════════
+function renderHome() {
+  const nome = userName();
+  const DIAS = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
   const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
-  const hoje  = new Date();
-  document.getElementById('date-lbl').textContent =
-    `${DIAS[hoje.getDay()]}, ${hoje.getDate()} de ${MESES[hoje.getMonth()]} de ${hoje.getFullYear()}`;
-  document.getElementById('walk-date').value = hoje.toISOString().split('T')[0];
+  const now = new Date();
+  document.getElementById('h-greeting').textContent = `Olá, ${nome}! 👋`;
+  document.getElementById('h-date').textContent = `${DIAS[now.getDay()]}, ${now.getDate()} de ${MESES[now.getMonth()]}`;
 
-  // ════════════════════════════════════════════════════════
-  // NAVEGAÇÃO
-  // ════════════════════════════════════════════════════════
-  function goTo(tab, btn) {
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('page-' + tab).classList.add('active');
-    btn.classList.add('active');
-    elFab.style.display = ['profile','goals'].includes(tab) ? 'none' : 'flex';
-    window.scrollTo({ top:0, behavior:'smooth' });
+  const streak = calcStreak();
+  document.getElementById('h-streak').textContent = streak;
+  document.getElementById('h-streak-msg').textContent =
+    streak > 1 ? `Incrível! ${streak} dias seguidos! 🔥` :
+    streak === 1 ? 'Ótimo começo hoje! 💪' : 'Comece hoje sua sequência!';
+
+  const td = today(), { start, end } = weekBounds();
+  const wToday  = D.walks.filter(w => w.date === td);
+  const kmToday = wToday.reduce((s,w) => s + Number(w.distance_km||0), 0);
+  const wWeek   = D.walks.filter(w => w.date >= start && w.date <= end);
+  const kmWeek  = wWeek.reduce((s,w) => s + Number(w.distance_km||0), 0);
+  const logsToday = D.logs.filter(l => l.date === td && l.completed);
+
+  document.getElementById('h-km').textContent      = fmt(kmToday) + ' km';
+  document.getElementById('h-hab').textContent      = `${logsToday.length}/${D.habits.length}`;
+  document.getElementById('h-walks-w').textContent  = wWeek.length;
+
+  const gDist = D.goals.find(g => g.type==='distance' && g.period==='weekly');
+  const wpct  = gDist ? Math.min(100, Math.round((kmWeek/Number(gDist.target_value))*100)) : null;
+  document.getElementById('h-meta').textContent = wpct != null ? wpct+'%' : '—';
+
+  // Progresso diário
+  const dayTarget = gDist ? Number(gDist.target_value)/7 : 5;
+  const kpct = Math.min(100, Math.round((kmToday/dayTarget)*100));
+  document.getElementById('h-prog-walk-bar').style.width = kpct+'%';
+  document.getElementById('h-prog-walk-lbl').textContent = `${fmt(kmToday)} / ${fmt(dayTarget)} km`;
+
+  const hpct = D.habits.length ? Math.round((logsToday.length/D.habits.length)*100) : 0;
+  document.getElementById('h-prog-hab-bar').style.width  = hpct+'%';
+  document.getElementById('h-prog-hab-lbl').textContent  = `${logsToday.length}/${D.habits.length}`;
+
+  // Lista hábitos home
+  const doneIds = logsToday.map(l => l.habit_id);
+  const el = document.getElementById('h-hab-list');
+  if (!D.habits.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">✅</div><p>Adicione hábitos na aba Hábitos</p></div>';
+    return;
   }
+  el.innerHTML = D.habits.slice(0,4).map(h => {
+    const done = doneIds.includes(h.id);
+    return `<div class="habit-row">
+      <div class="hic" style="background:${h.color_bg||'#FFF7ED'};color:${h.color_ic||'#F97316'}">
+        <svg class="ic" width="18" height="18"><use href="#i-check-sq"/></svg>
+      </div>
+      <div class="flex1"><div class="hname">${h.name}</div></div>
+      <div class="chk ${done?'done':''}" onclick="toggleLog('${h.id}',this)">
+        ${done?`<svg class="ic" width="13" height="13"><use href="#i-check"/></svg>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  function fabAction() {
-    const activeTab = document.querySelector('.page.active')?.id.replace('page-','');
-    openModal(activeTab === 'habits' ? 'modal-habit' : 'modal-walk');
+// ═══════════════════════════════════════════════════════════════════
+// CAMINHADAS
+// ═══════════════════════════════════════════════════════════════════
+function renderWalks() {
+  const td = today(), { start, end } = weekBounds();
+  const wWeek   = D.walks.filter(w => w.date >= start && w.date <= end);
+  const kmWeek  = wWeek.reduce((s,w) => s + Number(w.distance_km||0), 0);
+  const minWeek = wWeek.reduce((s,w) => s + Number(w.duration_minutes||0), 0);
+  const kmToday = D.walks.filter(w => w.date===td).reduce((s,w) => s+Number(w.distance_km||0), 0);
+  const gDist   = D.goals.find(g => g.type==='distance' && g.period==='weekly');
+  const target  = gDist ? Number(gDist.target_value) : 30;
+  const pct     = Math.min(100, Math.round((kmWeek/target)*100));
+
+  document.getElementById('w-km-today').textContent   = fmt(kmToday);
+  document.getElementById('w-meta-lbl').textContent   = `Meta: ${fmt(target)} km/semana`;
+  document.getElementById('w-prog').style.width       = pct+'%';
+  document.getElementById('w-prog-pct').textContent   = pct+'%';
+  document.getElementById('w-prog-max').textContent   = fmt(target);
+  document.getElementById('w-km-week').textContent    = fmt(kmWeek);
+  document.getElementById('w-min-week').textContent   = minWeek;
+  document.getElementById('w-count-week').textContent = wWeek.length;
+
+  const el = document.getElementById('w-history');
+  if (!D.walks.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">🏃</div><p>Nenhuma caminhada registrada ainda.</p><small>Toque em + para registrar</small></div>';
+    return;
   }
+  const perDay = target / 7;
+  el.innerHTML = D.walks.slice(0,25).map(w => {
+    const meta = Number(w.distance_km) >= perDay;
+    const info = [];
+    if (w.duration_minutes) info.push(`${w.duration_minutes}min`);
+    if (w.steps)            info.push(`${Number(w.steps).toLocaleString('pt-BR')} passos`);
+    if (w.notes)            info.push(w.notes);
+    return `<div class="walk-row">
+      <div class="row gap2">
+        <div style="width:36px;height:36px;border-radius:10px;background:var(--c-accent-lt);display:flex;align-items:center;justify-content:center;color:var(--c-accent);flex-shrink:0">
+          <svg class="ic" width="18" height="18"><use href="#i-walk"/></svg>
+        </div>
+        <div>
+          <div class="wr-dist">${fmt(w.distance_km)} km</div>
+          <div class="wr-meta">${fmtDate(w.date)}${info.length ? ' · '+info.join(' · ') : ''}</div>
+        </div>
+      </div>
+      <div class="row gap2">
+        <span class="badge ${meta?'bg-green':'bg-amber'}">${meta?'✓ Meta':'Parcial'}</span>
+        <button onclick="delWalk('${w.id}')" style="background:transparent;color:var(--c-hint);padding:4px;display:flex">
+          <svg class="ic" width="15" height="15"><use href="#i-trash"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
 
-  // ════════════════════════════════════════════════════════
-  // MODAIS
-  // ════════════════════════════════════════════════════════
-  function openModal(id)    { document.getElementById(id).classList.add('open'); }
-  function closeModal(e,id) { if(e.target.classList.contains('modal-overlay')) document.getElementById(id).classList.remove('open'); }
-  function saveWalk()  { document.getElementById('modal-walk').classList.remove('open');  toast('Caminhada registrada!'); }
-  function saveHabit() { document.getElementById('modal-habit').classList.remove('open'); toast('Hábito criado!'); }
-
-  function toggleCheck(el) {
-    el.classList.toggle('done');
-  }
-
-  // ════════════════════════════════════════════════════════
-  // TOAST
-  // ════════════════════════════════════════════════════════
-  function toast(msg) {
-    const t = document.createElement('div');
-    t.textContent = msg;
-    Object.assign(t.style, {
-      position:'fixed', bottom:'calc(80px + env(safe-area-inset-bottom))',
-      left:'50%', transform:'translateX(-50%) translateY(10px)', opacity:'0',
-      background:'#1E293B', color:'#fff', padding:'11px 20px', borderRadius:'12px',
-      fontSize:'14px', fontWeight:'600', zIndex:'600', transition:'all .25s ease',
-      whiteSpace:'nowrap', fontFamily:"'Plus Jakarta Sans',sans-serif",
-      boxShadow:'0 4px 20px rgba(0,0,0,.25)'
-    });
-    document.body.appendChild(t);
-    setTimeout(() => { t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; }, 10);
-    setTimeout(() => { t.style.opacity='0'; setTimeout(() => t.remove(), 300); }, 2800);
-  }
-
-  // ════════════════════════════════════════════════════════
-  // PWA INSTALL
-  // ════════════════════════════════════════════════════════
-  let deferredPrompt = null;
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault(); deferredPrompt = e;
-    elBanner.classList.add('show');
-    elMain.classList.add('with-banner');
+async function saveWalk() {
+  const dist = parseFloat(document.getElementById('w-dist').value.replace(',','.'));
+  if (!dist || dist <= 0) { toast('Informe a distância.'); return; }
+  disableBtn('btn-sw', true);
+  const { error } = await db.from('walks').insert({
+    user_id:          U.id,
+    distance_km:      dist,
+    duration_minutes: parseInt(document.getElementById('w-dur').value)   || null,
+    steps:            parseInt(document.getElementById('w-steps').value) || null,
+    date:             document.getElementById('w-date').value || today(),
+    notes:            document.getElementById('w-notes').value.trim()    || null,
   });
-  document.getElementById('btn-install').addEventListener('click', async () => {
-    if (!deferredPrompt) return;
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome==='accepted') toast('FITDay instalado! 🎉');
-    deferredPrompt = null;
-    elBanner.classList.remove('show');
-    elMain.classList.remove('with-banner');
-  });
-  document.getElementById('btn-close-banner').addEventListener('click', () => {
-    elBanner.classList.remove('show');
-    elMain.classList.remove('with-banner');
-  });
+  disableBtn('btn-sw', false);
+  if (error) { toast('Erro: '+error.message); return; }
+  closeModal('m-walk');
+  ['w-dist','w-dur','w-steps','w-notes'].forEach(i => { document.getElementById(i).value=''; });
+  toast('Caminhada salva! 🏃');
+  await loadAll();
+}
 
-  // ════════════════════════════════════════════════════════
-  // SERVICE WORKER
-  // ════════════════════════════════════════════════════════
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('/fitday/sw.js')
-        .then(r => console.log('[FITDay] SW OK:', r.scope))
-        .catch(e => console.log('[FITDay] SW erro:', e));
-    });
+async function delWalk(id) {
+  if (!confirm('Excluir esta caminhada?')) return;
+  await db.from('walks').delete().eq('id',id).eq('user_id',U.id);
+  toast('Removida.');
+  await loadAll();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// HÁBITOS
+// ═══════════════════════════════════════════════════════════════════
+function renderHabits() {
+  const td     = today();
+  const done   = D.logs.filter(l => l.date===td && l.completed);
+  const total  = D.habits.length;
+  const pct    = total ? Math.round((done.length/total)*100) : 0;
+  const doneIds = done.map(l => l.habit_id);
+
+  document.getElementById('hab-sub').textContent  = `${done.length} de ${total} concluídos hoje`;
+  document.getElementById('hab-pct').textContent  = pct+'%';
+  document.getElementById('hab-pbar').style.width = pct+'%';
+
+  const el = document.getElementById('hab-list');
+  if (!total) {
+    el.innerHTML = '<div class="empty"><div class="ei">✅</div><p>Nenhum hábito cadastrado</p><small>Toque em + para adicionar o seu primeiro</small></div>';
+    return;
   }
+
+  const FREQS = { daily:'Todos os dias', weekdays:'Seg–Sex', weekends:'Fins de semana' };
+  el.innerHTML = D.habits.map(h => {
+    const isDone = doneIds.includes(h.id);
+    const logDates = new Set(D.logs.filter(l=>l.habit_id===h.id&&l.completed).map(l=>l.date));
+    let streak = isDone ? 1 : 0;
+    const dd = new Date(); dd.setDate(dd.getDate()-1);
+    for (let i=0;i<60;i++) {
+      const ds = dd.toISOString().split('T')[0];
+      if (logDates.has(ds)) { streak++; dd.setDate(dd.getDate()-1); } else break;
+    }
+    return `<div class="habit-row">
+      <div class="hic" style="background:${h.color_bg||'#FFF7ED'};color:${h.color_ic||'#F97316'}">
+        <svg class="ic" width="18" height="18"><use href="#i-check-sq"/></svg>
+      </div>
+      <div class="flex1">
+        <div class="hname">${h.name}</div>
+        <div class="hstreak">
+          <svg class="ic" width="11" height="11" fill="var(--c-accent)" stroke="none"><use href="#i-flame"/></svg>
+          ${streak} dia${streak!==1?'s':''} · ${FREQS[h.frequency]||''}
+        </div>
+      </div>
+      <div class="row gap2">
+        <div class="chk ${isDone?'done':''}" onclick="toggleLog('${h.id}',this)">
+          ${isDone?`<svg class="ic" width="13" height="13"><use href="#i-check"/></svg>`:''}
+        </div>
+        <button onclick="delHabit('${h.id}')" style="background:transparent;color:var(--c-hint);padding:4px;display:flex">
+          <svg class="ic" width="15" height="15"><use href="#i-trash"/></svg>
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleLog(habitId) {
+  const td   = today();
+  const has  = D.logs.find(l => l.habit_id===habitId && l.date===td);
+  if (has) {
+    await db.from('habit_logs').delete().eq('habit_id',habitId).eq('date',td).eq('user_id',U.id);
+  } else {
+    await db.from('habit_logs').upsert({ habit_id:habitId, user_id:U.id, date:td, completed:true });
+  }
+  await loadAll();
+}
+
+async function saveHabit() {
+  const name = document.getElementById('hab-name').value.trim();
+  if (!name) { toast('Digite o nome do hábito.'); return; }
+  disableBtn('btn-shab', true);
+  const { error } = await db.from('habits').insert({
+    user_id:   U.id,
+    name,
+    frequency: document.getElementById('hab-freq').value,
+    sort_order: D.habits.length,
+    color_bg:   '#FFF7ED',
+    color_ic:   '#F97316',
+  });
+  disableBtn('btn-shab', false);
+  if (error) { toast('Erro: '+error.message); return; }
+  closeModal('m-habit');
+  document.getElementById('hab-name').value = '';
+  toast('Hábito criado! ✅');
+  await loadAll();
+}
+
+async function delHabit(id) {
+  if (!confirm('Excluir este hábito?')) return;
+  await db.from('habits').update({ active:false }).eq('id',id).eq('user_id',U.id);
+  toast('Hábito removido.');
+  await loadAll();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// METAS
+// ═══════════════════════════════════════════════════════════════════
+function renderGoals() {
+  const { start, end } = weekBounds();
+  const wWeek   = D.walks.filter(w => w.date>=start && w.date<=end);
+  const kmWeek  = wWeek.reduce((s,w) => s+Number(w.distance_km||0), 0);
+  const logsW   = D.logs.filter(l => l.date>=start && l.date<=end && l.completed);
+  const possL   = D.habits.length * 7;
+  const habRate = possL ? Math.round((logsW.length/possL)*100) : 0;
+  const streak  = calcStreak();
+
+  // Período label
+  const MS = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const s2 = new Date(start+'T12:00:00'), e2 = new Date(end+'T12:00:00');
+  document.getElementById('g-period').textContent = `${s2.getDate()} ${MS[s2.getMonth()]} – ${e2.getDate()} ${MS[e2.getMonth()]}`;
+
+  // Resumo
+  document.getElementById('s-km').textContent     = fmt(kmWeek);
+  document.getElementById('s-walks').textContent  = wWeek.length;
+  document.getElementById('s-hab').textContent    = habRate+'%';
+  document.getElementById('s-streak').textContent = streak;
+
+  // Lista metas
+  const el = document.getElementById('g-list');
+  if (!D.goals.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">🎯</div><p>Nenhuma meta cadastrada</p><small>Toque em + para criar sua primeira meta</small></div>';
+    return;
+  }
+
+  const TIPOS = {
+    distance:       '📏 Distância semanal',
+    walks_per_week: '🚶 Caminhadas por semana',
+    habits:         '✅ Hábitos por semana',
+    streak:         '🔥 Sequência de dias',
+  };
+
+  el.innerHTML = D.goals.map(g => {
+    let cur = 0, lbl = '';
+    if (g.type==='distance')       { cur=kmWeek;         lbl=`${fmt(kmWeek)} / ${fmt(g.target_value)} km`; }
+    if (g.type==='walks_per_week') { cur=wWeek.length;   lbl=`${wWeek.length} / ${g.target_value} caminhadas`; }
+    if (g.type==='habits')         { cur=logsW.length;   lbl=`${logsW.length} / ${g.target_value} hábitos`; }
+    if (g.type==='streak')         { cur=streak;         lbl=`${streak} / ${g.target_value} dias seguidos`; }
+    const pct = Math.min(100, Math.round((cur/Number(g.target_value))*100));
+    return `<div class="goal-item">
+      <div class="row sb mb1">
+        <span class="goal-name">${TIPOS[g.type]||g.type}</span>
+        <div class="row gap2">
+          <span class="goal-pct">${pct}%</span>
+          <button onclick="delGoal('${g.id}')" style="background:transparent;color:var(--c-hint);padding:2px;display:flex">
+            <svg class="ic" width="15" height="15"><use href="#i-trash"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="goal-sub">${lbl}</div>
+      <div class="pbar ph8"><div class="pf ${pct>=100?'pf-green':'pf-orange'}" style="width:${pct}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function updGoalLbl() {
+  const MAP = { distance:'Alvo (km)', walks_per_week:'Alvo (caminhadas)', habits:'Alvo (hábitos)', streak:'Alvo (dias)' };
+  document.getElementById('g-val-lbl').textContent = MAP[document.getElementById('g-type').value] || 'Alvo';
+}
+
+async function saveGoal() {
+  const type = document.getElementById('g-type').value;
+  const val  = parseFloat(document.getElementById('g-val').value);
+  if (!val || val<=0) { toast('Informe o valor alvo.'); return; }
+  disableBtn('btn-sg', true);
+  const { error } = await db.from('goals').insert({
+    user_id:      U.id,
+    type,
+    target_value: val,
+    period:       document.getElementById('g-period').value,
+  });
+  disableBtn('btn-sg', false);
+  if (error) { toast('Erro: '+error.message); return; }
+  closeModal('m-goal');
+  document.getElementById('g-val').value = '';
+  toast('Meta criada! 🎯');
+  await loadAll();
+}
+
+async function delGoal(id) {
+  if (!confirm('Excluir esta meta?')) return;
+  await db.from('goals').update({ active:false }).eq('id',id).eq('user_id',U.id);
+  toast('Meta removida.');
+  await loadAll();
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PERFIL
+// ═══════════════════════════════════════════════════════════════════
+function renderPerfil() {
+  if (!U) return;
+  const nome = userName();
+  const init = nome.charAt(0).toUpperCase();
+  document.getElementById('pf-av').textContent    = init;
+  document.getElementById('pf-name').textContent  = nome;
+  document.getElementById('pf-email').textContent = U.email;
+
+  const totalKm = D.walks.reduce((s,w) => s+Number(w.distance_km||0), 0);
+  const { start, end } = weekBounds();
+  const logsW = D.logs.filter(l => l.date>=start && l.date<=end && l.completed);
+  const possL = D.habits.length * 7;
+  const hRate = possL ? Math.round((logsW.length/possL)*100) : 0;
+
+  document.getElementById('a-walks').textContent    = D.walks.length;
+  document.getElementById('a-km').textContent       = fmt(totalKm, 0);
+  document.getElementById('a-streak').textContent   = calcStreak();
+  document.getElementById('a-hab-rate').textContent = hRate+'%';
+}
+
+function openEditPerfil() {
+  document.getElementById('ep-name').value  = userName();
+  document.getElementById('ep-email').value = U.email;
+  openModal('m-perfil');
+}
+
+async function savePerfil() {
+  const n = document.getElementById('ep-name').value.trim();
+  if (!n) { toast('Digite um nome.'); return; }
+  const { error } = await db.auth.updateUser({ data: { name: n } });
+  if (error) { toast('Erro: '+error.message); return; }
+  await db.from('profiles').update({ name:n }).eq('id', U.id);
+  U.user_metadata = { ...U.user_metadata, name: n };
+  closeModal('m-perfil');
+  document.getElementById('tb-avatar').textContent = n.charAt(0).toUpperCase();
+  toast('Perfil atualizado! ✅');
+  renderPerfil();
+  renderHome();
+}
+
+// Body records
+async function saveBody() {
+  const wt = parseFloat(document.getElementById('b-wt').value.replace(',','.')) || null;
+  const wa = parseFloat(document.getElementById('b-wa').value.replace(',','.')) || null;
+  if (!wt && !wa) { toast('Informe pelo menos o peso ou cintura.'); return; }
+  const { error } = await db.from('body_records').insert({
+    user_id:        U.id,
+    weight_kg:      wt,
+    waist_cm:       wa,
+    height_cm:      parseFloat(document.getElementById('b-ht').value.replace(',','.')) || null,
+    goal_weight_kg: parseFloat(document.getElementById('b-gw').value.replace(',','.')) || null,
+    notes:          document.getElementById('b-no').value.trim() || null,
+    date:           today(),
+  });
+  if (error) { toast('Erro: '+error.message); return; }
+  closeModal('m-body');
+  ['b-wt','b-wa','b-ht','b-gw','b-no'].forEach(id => document.getElementById(id).value='');
+  toast('Medidas salvas! 📊');
+  const { data } = await db.from('body_records').select('*').eq('user_id',U.id).order('date',{ascending:false}).limit(30);
+  D.body = data || [];
+}
+
+function openBodyHistory() {
+  const el = document.getElementById('body-hist-list');
+  if (!D.body.length) {
+    el.innerHTML = '<div class="empty"><div class="ei">📊</div><p>Nenhum registro ainda</p><small>Registre suas medidas pelo menu Perfil</small></div>';
+  } else {
+    el.innerHTML = D.body.map(r => {
+      const parts = [];
+      if (r.weight_kg)      parts.push(`⚖️ ${fmt(r.weight_kg)} kg`);
+      if (r.waist_cm)       parts.push(`📏 ${fmt(r.waist_cm,1)} cm cintura`);
+      if (r.height_cm)      parts.push(`📐 ${fmt(r.height_cm,1)} cm`);
+      if (r.goal_weight_kg) parts.push(`🎯 meta ${fmt(r.goal_weight_kg)} kg`);
+      return `<div class="ev-row">
+        <div>
+          <div class="ev-val">${parts.join('  ·  ')}</div>
+          <div class="ev-dt">${fmtDate(r.date)}${r.notes?' · '+r.notes:''}</div>
+        </div>
+        <button onclick="delBody('${r.id}')" style="background:transparent;color:var(--c-hint);padding:4px;display:flex;flex-shrink:0">
+          <svg class="ic" width="15" height="15"><use href="#i-trash"/></svg>
+        </button>
+      </div>`;
+    }).join('');
+  }
+  openModal('m-body-hist');
+}
+
+async function delBody(id) {
+  if (!confirm('Excluir este registro?')) return;
+  await db.from('body_records').delete().eq('id',id).eq('user_id',U.id);
+  const { data } = await db.from('body_records').select('*').eq('user_id',U.id).order('date',{ascending:false}).limit(30);
+  D.body = data || [];
+  openBodyHistory();
+  toast('Removido.');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// NAVEGAÇÃO
+// ═══════════════════════════════════════════════════════════════════
+function nav(page, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nb').forEach(b => b.classList.remove('on'));
+  document.getElementById('pg-'+page).classList.add('on');
+  if (btn) btn.classList.add('on');
+  document.getElementById('fab').classList.toggle('on', page!=='profile');
+  window.scrollTo({ top:0, behavior:'smooth' });
+  if (page==='profile') renderPerfil();
+}
+
+function fabAct() {
+  const p = document.querySelector('.page.on')?.id.replace('pg-','');
+  if (p==='habits') openModal('m-habit');
+  else if (p==='goals') openModal('m-goal');
+  else openModal('m-walk');
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// MODAIS
+// ═══════════════════════════════════════════════════════════════════
+function openModal(id) {
+  if (id==='m-body-hist') { openBodyHistory(); return; }
+  if (id==='m-walk') document.getElementById('w-date').value = today();
+  document.getElementById(id).classList.add('on');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('on');
+}
+function closeOverlay(e, id) {
+  if (e.target === document.getElementById(id)) closeModal(id);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// TEMA
+// ═══════════════════════════════════════════════════════════════════
+let dark = localStorage.getItem('fitday-theme') === 'dark';
+function applyTheme() {
+  document.body.classList.toggle('dark', dark);
+  document.getElementById('theme-lbl').textContent = dark ? 'Tema escuro' : 'Tema claro';
+  document.getElementById('theme-svg').innerHTML = dark
+    ? '<use href="#i-moon"/>' : '<use href="#i-sun"/>';
+  document.getElementById('theme-ic').style.background = dark ? '#1E293B' : '#FFFBEB';
+  document.getElementById('theme-ic').style.color      = dark ? '#94A3B8' : 'var(--c-amber)';
+}
+function toggleTheme() {
+  dark = !dark;
+  localStorage.setItem('fitday-theme', dark?'dark':'light');
+  applyTheme();
+  toast(dark ? 'Tema escuro 🌙' : 'Tema claro ☀️');
+}
+applyTheme();
+
+// ═══════════════════════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════════════════════
+function toast(msg) {
+  const t = document.createElement('div');
+  t.textContent = msg;
+  Object.assign(t.style, {
+    position:'fixed', bottom:'calc(74px + env(safe-area-inset-bottom))',
+    left:'50%', transform:'translateX(-50%) translateY(6px)',
+    opacity:'0', background:'#111827', color:'#fff',
+    padding:'10px 18px', borderRadius:'12px', fontSize:'14px',
+    fontWeight:'600', zIndex:'999', transition:'all .22s ease',
+    whiteSpace:'nowrap', fontFamily:"'Plus Jakarta Sans',sans-serif",
+    boxShadow:'0 4px 20px rgba(0,0,0,.3)', pointerEvents:'none',
+  });
+  document.body.appendChild(t);
+  requestAnimationFrame(() => {
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  setTimeout(() => {
+    t.style.opacity='0';
+    setTimeout(() => t.remove(), 250);
+  }, 2600);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PWA
+// ═══════════════════════════════════════════════════════════════════
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredPrompt = e;
+  document.getElementById('ibanner').classList.add('on');
+  document.getElementById('main').classList.add('banner');
+});
+document.getElementById('btn-install').addEventListener('click', async () => {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  const { outcome } = await deferredPrompt.userChoice;
+  if (outcome==='accepted') toast('FITDay instalado! 🎉');
+  deferredPrompt = null;
+  document.getElementById('ibanner').classList.remove('on');
+  document.getElementById('main').classList.remove('banner');
+});
+document.getElementById('btn-close-ib').addEventListener('click', () => {
+  document.getElementById('ibanner').classList.remove('on');
+  document.getElementById('main').classList.remove('banner');
+});
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/fitday/sw.js').catch(()=>{});
+  });
+}
 </script>
-<!-- ═══ MODAL: Editar Perfil ══════════════════════════════════════════════ -->
-<div class="modal-overlay" id="modal-editar-perfil" onclick="closeModal(event,'modal-editar-perfil')">
-  <div class="modal-sheet">
-    <div class="modal-handle"></div>
-    <div class="modal-title">Editar perfil</div>
-    <div class="f-lbl">Nome</div>
-    <input class="f-input" id="edit-nome" type="text" placeholder="Seu nome"/>
-    <div class="f-lbl">E-mail</div>
-    <input class="f-input" id="edit-email" type="email" placeholder="seu@email.com" disabled style="opacity:.5;cursor:not-allowed;"/>
-    <p style="font-size:12px;color:var(--muted);margin:-8px 0 14px;">O e-mail não pode ser alterado por aqui.</p>
-    <button class="btn-primary" onclick="salvarPerfil()">
-      <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-check"/></svg>
-      Salvar alterações
-    </button>
-  </div>
-</div>
-
 </body>
 </html>
