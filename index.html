@@ -399,6 +399,28 @@
     #app-loader .ld-name { font-size:26px; font-weight:800; color:#fff; }
     #app-loader .ld-name span { color:var(--accent); }
     #app-loader .ld-ring { width:38px; height:38px; border:3px solid rgba(255,255,255,.2); border-top-color:var(--accent); border-radius:50%; animation:spin .7s linear infinite; }
+    /* ── TEMA ESCURO ─────────────────────────────── */
+    body.dark {
+      --primary:  #0F172A;
+      --bg:       #1E293B;
+      --text:     #F1F5F9;
+      --card:     #263347;
+      --border:   #334155;
+      --muted:    #64748B;
+    }
+    body.dark .auth-card,
+    body.dark #navbar,
+    body.dark #topbar { background: var(--primary); }
+    body.dark .prog-bg { background:#334155; }
+    body.dark .achv-card { background:#1E293B; }
+    body.dark .f-input { background:#1E293B; color:var(--text); border-color:var(--border); }
+    body.dark .f-input::placeholder { color:var(--muted); }
+    body.dark .auth-tabs { background:#263347; }
+    body.dark .auth-tab.active { background:#334155; color:var(--text); }
+    body.dark .modal-sheet { background:var(--primary); }
+    body.dark .habit-ic-wrap { background:#263347 !important; }
+    body.dark .menu-ic-wrap { background:#263347 !important; }
+    body.dark .stat-card { background:#263347; }
   </style>
 </head>
 <body>
@@ -921,46 +943,52 @@
       <div class="perfil-name" id="perfil-name">David</div>
       <div class="perfil-email" id="perfil-email">david@email.com</div>
 
-      <div class="menu-item">
+      <div class="menu-item" onclick="abrirEditarPerfil()">
         <div class="menu-ic-wrap" style="background:#FFF7ED;color:var(--accent)">
           <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-profile-edit"/></svg>
         </div>
         <div class="menu-lbl">Editar perfil</div>
         <div class="menu-arrow"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-chevron-r"/></svg></div>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" onclick="irParaMetas()">
         <div class="menu-ic-wrap" style="background:#EFF6FF;color:#3B82F6">
           <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-target"/></svg>
         </div>
         <div class="menu-lbl">Configurar metas</div>
         <div class="menu-arrow"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-chevron-r"/></svg></div>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" onclick="toggleNotificacoes(this)">
         <div class="menu-ic-wrap" style="background:#F0FDF4;color:var(--success)">
           <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-bell"/></svg>
         </div>
         <div class="menu-lbl">Notificações</div>
-        <div class="menu-arrow"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-chevron-r"/></svg></div>
+        <div class="menu-arrow">
+          <div id="notif-toggle" style="width:42px;height:24px;border-radius:99px;background:#E2E8F0;position:relative;transition:background .2s;cursor:pointer;">
+            <div id="notif-thumb" style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.2);"></div>
+          </div>
+        </div>
       </div>
-      <div class="menu-item">
-        <div class="menu-ic-wrap" style="background:#FEF9C3;color:#D97706">
+      <div class="menu-item" onclick="toggleTema(this)">
+        <div class="menu-ic-wrap" id="tema-ic-wrap" style="background:#FEF9C3;color:#D97706">
           <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-sun"/></svg>
         </div>
-        <div class="menu-lbl">Tema claro / escuro</div>
-        <div class="menu-arrow"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-chevron-r"/></svg></div>
+        <div class="menu-lbl" id="tema-lbl">Tema claro / escuro</div>
+        <div class="menu-arrow">
+          <div id="tema-badge" style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px;background:#FEF9C3;color:#D97706;">CLARO</div>
+        </div>
       </div>
-      <div class="menu-item">
+      <div class="menu-item" onclick="toast('Configurações avançadas em breve! ⚙️')">
         <div class="menu-ic-wrap" style="background:#F1F5F9;color:var(--muted)">
           <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-settings"/></svg>
         </div>
         <div class="menu-lbl">Configurações</div>
         <div class="menu-arrow"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-chevron-r"/></svg></div>
       </div>
-      <div class="menu-item" style="border-bottom:none">
+      <div class="menu-item" style="border-bottom:none" onclick="doLogout()">
         <div class="menu-ic-wrap" style="background:#FEF2F2;color:var(--error)">
           <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-logout"/></svg>
         </div>
-        <div class="menu-lbl" style="color:var(--error);" onclick="doLogout()">Sair da conta</div>
+        <div class="menu-lbl" style="color:var(--error);">Sair da conta</div>
         <div class="menu-arrow"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-chevron-r"/></svg></div>
       </div>
     </div>
@@ -1181,6 +1209,89 @@
     else toast('E-mail de recuperação enviado!');
   }
 
+  // ════════════════════════════════════════════════════════
+  // FUNÇÕES DO PERFIL
+  // ════════════════════════════════════════════════════════
+
+  // Navega para a aba Metas
+  function irParaMetas() {
+    const btn = document.querySelector('[onclick*="goals"]');
+    goTo('goals', btn);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // Toggle notificações (visual — integração push em breve)
+  let notifAtivo = false;
+  function toggleNotificacoes() {
+    notifAtivo = !notifAtivo;
+    const tog   = document.getElementById('notif-toggle');
+    const thumb = document.getElementById('notif-thumb');
+    if (notifAtivo) {
+      tog.style.background   = 'var(--success)';
+      thumb.style.left       = '21px';
+      toast('Notificações ativadas! 🔔');
+    } else {
+      tog.style.background   = '#E2E8F0';
+      thumb.style.left       = '3px';
+      toast('Notificações desativadas.');
+    }
+  }
+
+  // Toggle tema claro / escuro
+  let temaEscuro = localStorage.getItem('fitday-tema') === 'dark';
+  function aplicarTema() {
+    if (temaEscuro) {
+      document.body.classList.add('dark');
+      document.getElementById('tema-badge').textContent    = 'ESCURO';
+      document.getElementById('tema-badge').style.background = '#1E293B';
+      document.getElementById('tema-badge').style.color      = '#94A3B8';
+    } else {
+      document.body.classList.remove('dark');
+      document.getElementById('tema-badge').textContent    = 'CLARO';
+      document.getElementById('tema-badge').style.background = '#FEF9C3';
+      document.getElementById('tema-badge').style.color      = '#D97706';
+    }
+  }
+  function toggleTema() {
+    temaEscuro = !temaEscuro;
+    localStorage.setItem('fitday-tema', temaEscuro ? 'dark' : 'light');
+    aplicarTema();
+    toast(temaEscuro ? 'Tema escuro ativado 🌙' : 'Tema claro ativado ☀️');
+  }
+  // Aplica tema salvo ao carregar
+  aplicarTema();
+
+  // Abre modal de editar perfil com dados atuais
+  function abrirEditarPerfil() {
+    db.auth.getSession().then(({ data }) => {
+      if (!data.session) return;
+      const u    = data.session.user;
+      const nome = u.user_metadata?.name || u.email.split('@')[0];
+      document.getElementById('edit-nome').value  = nome;
+      document.getElementById('edit-email').value = u.email;
+    });
+    openModal('modal-editar-perfil');
+  }
+  // Sobrescreve o openModal para o perfil
+  const _openModal = openModal;
+
+  // Salvar nome no Supabase
+  async function salvarPerfil() {
+    const novoNome = document.getElementById('edit-nome').value.trim();
+    if (!novoNome) { toast('Digite um nome válido.'); return; }
+    const { error } = await db.auth.updateUser({ data: { name: novoNome } });
+    if (error) { toast('Erro ao salvar: ' + error.message); return; }
+    // Atualiza também na tabela profiles
+    const { data: { session } } = await db.auth.getSession();
+    if (session) {
+      await db.from('profiles').update({ name: novoNome }).eq('id', session.user.id);
+      document.getElementById('perfil-name').textContent = novoNome;
+      document.getElementById('perfil-init').textContent = novoNome.charAt(0).toUpperCase();
+    }
+    document.getElementById('modal-editar-perfil').classList.remove('open');
+    toast('Perfil atualizado! ✅');
+  }
+
   function traduzErro(msg) {
     if (msg.includes('Invalid login credentials')) return 'E-mail ou senha incorretos.';
     if (msg.includes('Email not confirmed'))       return 'Confirme seu e-mail antes de entrar.';
@@ -1288,5 +1399,22 @@
     });
   }
 </script>
+<!-- ═══ MODAL: Editar Perfil ══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-editar-perfil" onclick="closeModal(event,'modal-editar-perfil')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Editar perfil</div>
+    <div class="f-lbl">Nome</div>
+    <input class="f-input" id="edit-nome" type="text" placeholder="Seu nome"/>
+    <div class="f-lbl">E-mail</div>
+    <input class="f-input" id="edit-email" type="email" placeholder="seu@email.com" disabled style="opacity:.5;cursor:not-allowed;"/>
+    <p style="font-size:12px;color:var(--muted);margin:-8px 0 14px;">O e-mail não pode ser alterado por aqui.</p>
+    <button class="btn-primary" onclick="salvarPerfil()">
+      <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-check"/></svg>
+      Salvar alterações
+    </button>
+  </div>
+</div>
+
 </body>
 </html>
