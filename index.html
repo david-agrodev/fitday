@@ -1045,7 +1045,7 @@
   // ── SERVICE WORKER ────────────────────────────────────
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
+      navigator.serviceWorker.register('/fitday/sw.js')
         .then(r => console.log('[FITDay] SW registrado:', r.scope))
         .catch(e => console.log('[FITDay] SW erro:', e));
     });
