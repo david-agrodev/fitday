@@ -348,6 +348,96 @@
     .txt-success { color:var(--success); }
     .txt-error { color:var(--error); }
     .gap-row { display:flex; align-items:center; gap:8px; }
+
+    /* ── AUTH SCREEN ─────────────────────────────── */
+    #auth-screen {
+      position:fixed; inset:0; z-index:400;
+      display:flex; flex-direction:column;
+      background: var(--bg);
+    }
+    .auth-hero {
+      background: linear-gradient(160deg, var(--primary) 0%, #334155 100%);
+      padding: 60px 32px 48px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      flex: 0 0 auto;
+    }
+    .auth-logo-ring {
+      width:72px; height:72px; border-radius:22px;
+      background: var(--accent); display:flex; align-items:center; justify-content:center;
+      margin-bottom:18px; box-shadow: 0 8px 24px rgba(249,115,22,.4);
+    }
+    .auth-app-name { font-size:32px; font-weight:800; color:#fff; letter-spacing:-1px; }
+    .auth-app-name span { color:var(--accent); }
+    .auth-tagline { font-size:14px; color:#94A3B8; margin-top:6px; text-align:center; }
+
+    .auth-card {
+      background: var(--card); border-radius:28px 28px 0 0;
+      padding:28px 24px 40px; flex:1; overflow-y:auto;
+      box-shadow: 0 -4px 24px rgba(0,0,0,.08);
+    }
+    .auth-tabs {
+      display:grid; grid-template-columns:1fr 1fr;
+      background:#F1F5F9; border-radius:12px; padding:4px; margin-bottom:24px;
+    }
+    .auth-tab {
+      padding:10px; border-radius:9px; border:none; background:transparent;
+      font-family:inherit; font-size:14px; font-weight:700; cursor:pointer;
+      color:var(--muted); transition:all .2s;
+    }
+    .auth-tab.active { background:#fff; color:var(--text); box-shadow:0 1px 6px rgba(0,0,0,.1); }
+
+    .auth-title { font-size:22px; font-weight:800; margin-bottom:4px; }
+    .auth-sub { font-size:13px; color:var(--muted); margin-bottom:22px; }
+
+    .auth-error {
+      background:#FEF2F2; border:1px solid #FECACA; border-radius:10px;
+      padding:10px 14px; font-size:13px; color:var(--error); font-weight:600;
+      margin-bottom:14px; display:none;
+    }
+    .auth-error.show { display:block; }
+
+    .auth-btn {
+      width:100%; padding:15px; border-radius:14px;
+      background:var(--accent); color:#fff; font-weight:700; font-size:16px;
+      border:none; cursor:pointer; font-family:inherit; margin-top:4px;
+      transition:transform .15s, opacity .15s;
+      display:flex; align-items:center; justify-content:center; gap:8px;
+    }
+    .auth-btn:active { transform:scale(.98); }
+    .auth-btn:disabled { opacity:.6; cursor:not-allowed; }
+    .auth-btn .spinner {
+      width:18px; height:18px; border:2.5px solid rgba(255,255,255,.3);
+      border-top-color:#fff; border-radius:50%;
+      animation: spin .7s linear infinite; display:none;
+    }
+    .auth-btn.loading .btn-text { display:none; }
+    .auth-btn.loading .spinner { display:block; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    .auth-forgot {
+      text-align:center; margin-top:16px; font-size:13px; color:var(--muted);
+    }
+    .auth-forgot a { color:var(--accent); font-weight:600; cursor:pointer; }
+    .auth-divider {
+      display:flex; align-items:center; gap:12px; margin:20px 0;
+      color:var(--muted); font-size:12px;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content:''; flex:1; height:1px; background:var(--border);
+    }
+    /* Spinner de carregamento inicial do app */
+    #app-loader {
+      position:fixed; inset:0; z-index:500;
+      background:var(--primary); display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:16px;
+    }
+    #app-loader .ld-logo { font-size:28px; font-weight:800; color:#fff; }
+    #app-loader .ld-logo span { color:var(--accent); }
+    #app-loader .ld-ring {
+      width:40px; height:40px; border:3px solid rgba(255,255,255,.2);
+      border-top-color:var(--accent); border-radius:50%;
+      animation: spin .7s linear infinite;
+    }
   </style>
 </head>
 <body>
@@ -390,6 +480,69 @@
   <symbol id="ic-kcal" viewBox="0 0 24 24"><path d="M12 2c-5.33 4.55-8 8.48-8 11.8 0 4.98 3.8 8.2 8 8.2s8-3.22 8-8.2c0-3.32-2.67-7.25-8-11.8z"/><path d="M12 12c-1.5 2-2 3.5-2 5 0 2 1 3 2 3s2-1 2-3c0-1.5-.5-3-2-5z" fill="currentColor" stroke="none" opacity=".4"/></symbol>
   <symbol id="ic-profile-edit" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M17 11l2 2 4-4" stroke-width="1.8"/></symbol>
 </svg>
+
+<!-- ═══ LOADER INICIAL ════════════════════════════════════════════════════ -->
+<div id="app-loader">
+  <div style="width:62px;height:62px;border-radius:20px;background:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:8px;">
+    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-run"/></svg>
+  </div>
+  <div class="ld-logo">FIT<span>Day</span></div>
+  <div class="ld-ring"></div>
+</div>
+
+<!-- ═══ TELA DE LOGIN / CADASTRO ══════════════════════════════════════════ -->
+<div id="auth-screen" style="display:none;">
+  <div class="auth-hero">
+    <div class="auth-logo-ring">
+      <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><use href="#ic-run"/></svg>
+    </div>
+    <div class="auth-app-name">FIT<span>Day</span></div>
+    <div class="auth-tagline">Seu dia fitness. Caminhadas, hábitos e metas.</div>
+  </div>
+
+  <div class="auth-card">
+    <!-- Tabs Login / Cadastro -->
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchAuthTab('login')">Entrar</button>
+      <button class="auth-tab" id="tab-signup" onclick="switchAuthTab('signup')">Criar conta</button>
+    </div>
+
+    <!-- FORM LOGIN -->
+    <div id="form-login">
+      <div class="auth-title">Bem-vindo de volta!</div>
+      <div class="auth-sub">Entre com seu e-mail e senha</div>
+      <div class="auth-error" id="err-login"></div>
+      <div class="f-lbl">E-mail</div>
+      <input class="f-input" id="login-email" type="email" inputmode="email" placeholder="seu@email.com" autocomplete="email"/>
+      <div class="f-lbl">Senha</div>
+      <input class="f-input" id="login-pass" type="password" placeholder="••••••••" autocomplete="current-password"/>
+      <button class="auth-btn" id="btn-login" onclick="doLogin()">
+        <span class="btn-text">Entrar</span>
+        <div class="spinner"></div>
+      </button>
+      <div class="auth-forgot">
+        <a onclick="doResetPassword()">Esqueci minha senha</a>
+      </div>
+    </div>
+
+    <!-- FORM CADASTRO -->
+    <div id="form-signup" style="display:none;">
+      <div class="auth-title">Crie sua conta</div>
+      <div class="auth-sub">Comece sua jornada fitness hoje</div>
+      <div class="auth-error" id="err-signup"></div>
+      <div class="f-lbl">Nome</div>
+      <input class="f-input" id="signup-name" type="text" placeholder="Seu nome" autocomplete="name"/>
+      <div class="f-lbl">E-mail</div>
+      <input class="f-input" id="signup-email" type="email" inputmode="email" placeholder="seu@email.com" autocomplete="email"/>
+      <div class="f-lbl">Senha</div>
+      <input class="f-input" id="signup-pass" type="password" placeholder="Mínimo 6 caracteres" autocomplete="new-password"/>
+      <button class="auth-btn" id="btn-signup" onclick="doSignup()">
+        <span class="btn-text">Criar conta</span>
+        <div class="spinner"></div>
+      </button>
+    </div>
+  </div>
+</div>
 
 <!-- ═══ TOP BAR ════════════════════════════════════════════════════════════ -->
 <div id="topbar">
@@ -810,10 +963,10 @@
   <div class="page" id="page-profile">
     <div class="card card-p" style="margin-bottom:14px;">
       <div class="perfil-avatar">
-        <svg class="ic ic-36" fill="none" stroke="currentColor"><use href="#ic-user"/></svg>
+        <span id="perfil-avatar-init" style="font-size:32px;font-weight:800;color:#fff;font-family:'Plus Jakarta Sans',sans-serif;">D</span>
       </div>
-      <div class="perfil-name">David</div>
-      <div class="perfil-email">david@email.com</div>
+      <div class="perfil-name" id="perfil-name">David</div>
+      <div class="perfil-email" id="perfil-email">david@email.com</div>
 
       <div class="menu-item">
         <div class="menu-ic-wrap" style="background:#FFF7ED;color:var(--accent)">
@@ -850,7 +1003,7 @@
         <div class="menu-lbl">Configurações</div>
         <div class="menu-arrow"><svg class="ic ic-18" fill="none" stroke="currentColor"><use href="#ic-chevron-r"/></svg></div>
       </div>
-      <div class="menu-item" style="border-bottom:none">
+      <div class="menu-item" style="border-bottom:none" onclick="logout()">
         <div class="menu-ic-wrap" style="background:#FEF2F2;color:var(--error)">
           <svg class="ic ic-20" fill="none" stroke="currentColor"><use href="#ic-logout"/></svg>
         </div>
@@ -966,7 +1119,142 @@
     `${DIAS[hoje.getDay()]}, ${hoje.getDate()} de ${MESES[hoje.getMonth()]} de ${hoje.getFullYear()}`;
   document.getElementById('walk-date').value = hoje.toISOString().split('T')[0];
 
-  // ── NAVEGAÇÃO ─────────────────────────────────────────
+  // ════════════════════════════════════════════════════════
+  // AUTH — Login / Cadastro / Logout
+  // ════════════════════════════════════════════════════════
+
+  function showApp(session) {
+    // Esconde loader e auth, mostra app
+    document.getElementById('app-loader').style.display   = 'none';
+    document.getElementById('auth-screen').style.display  = 'none';
+    document.getElementById('topbar').style.display       = 'flex';
+    document.getElementById('main').style.display         = 'block';
+    document.getElementById('navbar').style.display       = 'flex';
+    document.getElementById('fab').style.display          = 'flex';
+    // Preenche perfil com dados reais
+    if (session?.user) {
+      const u = session.user;
+      const nome = u.user_metadata?.name || u.email.split('@')[0];
+      const init = nome.charAt(0).toUpperCase();
+      document.getElementById('perfil-name').textContent       = nome;
+      document.getElementById('perfil-email').textContent      = u.email;
+      document.getElementById('perfil-avatar-init').textContent = init;
+      // Topbar avatar inicial
+      const av = document.querySelector('.avatar-btn');
+      if (av) av.setAttribute('title', nome);
+    }
+  }
+
+  function showAuth() {
+    document.getElementById('app-loader').style.display   = 'none';
+    document.getElementById('auth-screen').style.display  = 'flex';
+    document.getElementById('topbar').style.display       = 'none';
+    document.getElementById('main').style.display         = 'none';
+    document.getElementById('navbar').style.display       = 'none';
+    document.getElementById('fab').style.display          = 'none';
+  }
+
+  // Esconde app enquanto verifica sessão
+  document.getElementById('topbar').style.display  = 'none';
+  document.getElementById('main').style.display    = 'none';
+  document.getElementById('navbar').style.display  = 'none';
+  document.getElementById('fab').style.display     = 'none';
+
+  // Verifica sessão ao carregar
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session) showApp(data.session);
+    else showAuth();
+  });
+
+  // Escuta mudanças de auth (login/logout em tempo real)
+  supabase.auth.onAuthStateChange((event, session) => {
+    console.log('[FITDay] Auth event:', event);
+    if (event === 'SIGNED_IN')  showApp(session);
+    if (event === 'SIGNED_OUT') showAuth();
+  });
+
+  // ── LOGIN ─────────────────────────────────────────────
+  async function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass  = document.getElementById('login-pass').value;
+    const err   = document.getElementById('err-login');
+    const btn   = document.getElementById('btn-login');
+    err.classList.remove('show');
+    if (!email || !pass) { err.textContent = 'Preencha e-mail e senha.'; err.classList.add('show'); return; }
+    btn.classList.add('loading'); btn.disabled = true;
+    const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
+    btn.classList.remove('loading'); btn.disabled = false;
+    if (error) { err.textContent = traduzErroAuth(error.message); err.classList.add('show'); }
+  }
+
+  // ── CADASTRO ──────────────────────────────────────────
+  async function doSignup() {
+    const name  = document.getElementById('signup-name').value.trim();
+    const email = document.getElementById('signup-email').value.trim();
+    const pass  = document.getElementById('signup-pass').value;
+    const err   = document.getElementById('err-signup');
+    const btn   = document.getElementById('btn-signup');
+    err.classList.remove('show');
+    if (!name || !email || !pass) { err.textContent = 'Preencha todos os campos.'; err.classList.add('show'); return; }
+    if (pass.length < 6) { err.textContent = 'A senha deve ter pelo menos 6 caracteres.'; err.classList.add('show'); return; }
+    btn.classList.add('loading'); btn.disabled = true;
+    const { error } = await supabase.auth.signUp({
+      email, password: pass,
+      options: { data: { name } }
+    });
+    btn.classList.remove('loading'); btn.disabled = false;
+    if (error) { err.textContent = traduzErroAuth(error.message); err.classList.add('show'); }
+    else { toast('Conta criada! Verificando...'); }
+  }
+
+  // ── LOGOUT ────────────────────────────────────────────
+  async function logout() {
+    const confirma = confirm('Deseja sair da conta?');
+    if (!confirma) return;
+    await supabase.auth.signOut();
+    toast('Até logo! 👋');
+  }
+
+  // ── RESET SENHA ───────────────────────────────────────
+  async function doResetPassword() {
+    const email = document.getElementById('login-email').value.trim();
+    const err   = document.getElementById('err-login');
+    if (!email) { err.textContent = 'Informe seu e-mail para recuperar a senha.'; err.classList.add('show'); return; }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://david-agrodev.github.io/fitday/'
+    });
+    if (error) { err.textContent = traduzErroAuth(error.message); err.classList.add('show'); }
+    else { toast('E-mail de recuperação enviado! Verifique sua caixa de entrada.'); }
+  }
+
+  // ── TRADUZ ERROS DO SUPABASE ──────────────────────────
+  function traduzErroAuth(msg) {
+    if (msg.includes('Invalid login credentials')) return 'E-mail ou senha incorretos.';
+    if (msg.includes('Email not confirmed'))       return 'Confirme seu e-mail antes de entrar.';
+    if (msg.includes('User already registered'))   return 'Este e-mail já está cadastrado.';
+    if (msg.includes('Password should be'))        return 'A senha deve ter pelo menos 6 caracteres.';
+    if (msg.includes('Unable to validate'))        return 'E-mail inválido.';
+    if (msg.includes('rate limit'))                return 'Muitas tentativas. Aguarde alguns minutos.';
+    return msg;
+  }
+
+  // ── SWITCH LOGIN/CADASTRO ────────────────────────────
+  function switchAuthTab(tab) {
+    document.getElementById('form-login').style.display  = tab === 'login'  ? 'block' : 'none';
+    document.getElementById('form-signup').style.display = tab === 'signup' ? 'block' : 'none';
+    document.getElementById('tab-login').classList.toggle('active',  tab === 'login');
+    document.getElementById('tab-signup').classList.toggle('active', tab === 'signup');
+    document.getElementById('err-login').classList.remove('show');
+    document.getElementById('err-signup').classList.remove('show');
+  }
+
+  // Enter nos campos de login
+  document.getElementById('login-pass').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+  document.getElementById('signup-pass').addEventListener('keydown', e => { if(e.key==='Enter') doSignup(); });
+
+  // ════════════════════════════════════════════════════════
+  // NAVEGAÇÃO
+  // ════════════════════════════════════════════════════════
   function goTo(tab, btn) {
     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -979,8 +1267,6 @@
 
   // ── FAB ───────────────────────────────────────────────
   function fabAction() {
-    const tab = document.querySelector('.tab-btn.active')?.dataset?.tab ||
-      document.querySelector('.tab-btn.active')?.getAttribute('onclick')?.match(/goTo\('(\w+)'/)?.[1];
     const activeTab = document.querySelector('.page.active')?.id.replace('page-','');
     openModal(activeTab === 'habits' ? 'modal-habit' : 'modal-walk');
   }
@@ -997,7 +1283,6 @@
   // ── CHECK TOGGLE ──────────────────────────────────────
   function toggleCheck(el) {
     el.classList.toggle('done');
-    // update color of icon inside
     const svg = el.querySelector('svg');
     if (svg) svg.style.display = 'block';
   }
@@ -1010,13 +1295,13 @@
       position:'fixed', bottom:`calc(var(--tab-h) + env(safe-area-inset-bottom) + 14px)`,
       left:'50%', transform:'translateX(-50%) translateY(10px)', opacity:'0',
       background:'#1E293B', color:'#fff', padding:'11px 20px', borderRadius:'12px',
-      fontSize:'14px', fontWeight:'600', zIndex:'500', transition:'all .25s ease',
+      fontSize:'14px', fontWeight:'600', zIndex:'600', transition:'all .25s ease',
       whiteSpace:'nowrap', fontFamily:"'Plus Jakarta Sans',sans-serif",
       boxShadow:'0 4px 20px rgba(0,0,0,.25)'
     });
     document.body.appendChild(t);
     setTimeout(() => { t.style.opacity='1'; t.style.transform='translateX(-50%) translateY(0)'; }, 10);
-    setTimeout(() => { t.style.opacity='0'; setTimeout(() => t.remove(), 300); }, 2500);
+    setTimeout(() => { t.style.opacity='0'; setTimeout(() => t.remove(), 300); }, 2800);
   }
 
   // ── PWA INSTALL PROMPT ────────────────────────────────
